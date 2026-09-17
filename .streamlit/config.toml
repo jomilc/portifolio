@@ -1,0 +1,3 @@
+[server]
+# Serve a pasta static/ em app/static/ — o WebSIG carrega as camadas sob demanda por aqui
+enableStaticServing = true

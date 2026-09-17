@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0F172A; --ink-2: #334155; --muted: #64748B; --line: #E2E8F0; --line-2: #CBD5E1;
+    --bg: #F8FAFC; --card: #FFFFFF; --accent: #15803D; --accent-bg: #ECFDF5; --accent-line: #A7F3D0;
+    --danger: #B91C1C; --panel-w: 312px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--ink); background: var(--card); }
+  button { font: inherit; color: inherit; }
+  #app { position: relative; display: flex; height: 100vh; border: 1.5px solid var(--line-2); border-radius: 12px; overflow: hidden; background: var(--card); }
+
+  /* ---------- Painel de camadas ---------- */
+  #panel { width: var(--panel-w); flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--card); z-index: 1001; }
+  #panel header { padding: 12px 14px 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  #panel header .title { font-weight: 800; font-size: 14px; letter-spacing: -0.01em; flex: 1; }
+  #panel header .title small { display: block; font-weight: 500; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .icon-btn { border: 1px solid var(--line-2); background: var(--card); border-radius: 7px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink-2); flex-shrink: 0; padding: 0; }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .icon-btn svg { width: 15px; height: 15px; }
+
+  .section-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 6px; }
+  #basemaps { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--bg); padding: 3px; border-radius: 8px; border: 1px solid var(--line); }
+  .segmented button { border: 0; background: transparent; padding: 5px 2px; border-radius: 6px; font-size: 11.5px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+  .segmented button[aria-pressed="true"] { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+
+  #toolbar { display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .btn { border: 1px solid var(--line-2); background: var(--card); border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #166534; color: #fff; }
+  .btn svg { width: 14px; height: 14px; }
+  #toolbar .btn { flex: 1; justify-content: center; }
+
+  #tree { flex: 1; overflow-y: auto; padding: 6px 0 12px; }
+  .article { padding: 8px 14px 4px; }
+  .article-head { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
+  .article-head .badge { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-line); font-size: 10px; font-weight: 800; border-radius: 5px; padding: 2px 6px; white-space: nowrap; margin-top: 1px; }
+  .article-head b { font-size: 13px; line-height: 1.3; display: block; }
+  .article-head small { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+  .article-head a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .article-head a:hover { text-decoration: underline; }
+
+  .group { border: 1px solid var(--line); border-radius: 9px; margin: 6px 0; background: var(--card); }
+  .group-head { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--bg); border: 0; border-radius: 9px; padding: 7px 10px; cursor: pointer; text-align: left; }
+  .group.open .group-head { border-bottom: 1px solid var(--line); border-radius: 9px 9px 0 0; }
+  .group-head .chev { width: 12px; height: 12px; transition: transform .15s; color: var(--muted); flex-shrink: 0; }
+  .group.open .group-head .chev { transform: rotate(90deg); }
+  .group-head .gtitle { flex: 1; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+  .group-head .count { font-size: 10.5px; font-weight: 700; color: var(--muted); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0 7px; }
+  .group-head .count.on { color: var(--accent); border-color: var(--accent-line); background: var(--accent-bg); }
+  .group-body { display: none; padding: 3px 0; }
+  .group.open .group-body { display: block; }
+
+  .layer { padding: 2px 8px 2px 10px; }
+  .layer-row { display: flex; align-items: center; gap: 7px; min-height: 30px; }
+  .layer-row label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; padding: 3px 0; }
+  .layer-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); margin: 0; flex-shrink: 0; cursor: pointer; }
+  .layer-row .lname { font-size: 12.5px; line-height: 1.25; color: var(--ink); overflow-wrap: anywhere; }
+  .layer.active .lname { font-weight: 700; }
+  .layer.disabled label { opacity: .45; cursor: not-allowed; }
+  .swatch { width: 22px; height: 12px; border-radius: 3px; flex-shrink: 0; border: 1px solid rgba(15,23,42,.18); display: inline-flex; overflow: hidden; }
+  .swatch span { flex: 1; }
+  .swatch.line { border: 0; height: 2px; border-radius: 0; margin: 0 1px; }
+  .swatch.dash { background: none !important; border: 0; border-top: 2px dashed; height: 0; border-radius: 0; }
+  .row-actions { display: flex; gap: 2px; opacity: .55; transition: opacity .12s; }
+  .layer:hover .row-actions, .layer.active .row-actions, .row-actions:focus-within { opacity: 1; }
+  .mini { border: 0; background: transparent; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  .mini:hover { background: var(--bg); color: var(--accent); }
+  .mini svg { width: 14px; height: 14px; }
+  .spinner { width: 13px; height: 13px; border: 2px solid var(--line-2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .layer-ctrl { display: none; align-items: center; gap: 8px; padding: 0 4px 6px 23px; }
+  .layer.active .layer-ctrl { display: flex; }
+  .layer-ctrl input[type=range] { flex: 1; accent-color: var(--accent); height: 14px; }
+  .layer-ctrl output { font-size: 10.5px; color: var(--muted); width: 32px; text-align: right; font-variant-numeric: tabular-nums; }
+  .layer-ctrl .size { font-size: 10.5px; color: var(--muted); }
+
+  #panel footer { border-top: 1px solid var(--line); padding: 8px 14px; font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+
+  /* ---------- Mapa ---------- */
+  #map-wrap { position: relative; flex: 1; min-width: 0; }
+  #map { position: absolute; inset: 0; background: #E9EEF3; }
+  .leaflet-container { font-family: inherit; }
+  .leaflet-image-layer.raster { image-rendering: pixelated; }
+  .card { background: rgba(255,255,255,.97); border: 1px solid var(--line-2); border-radius: 10px; box-shadow: 0 4px 16px rgba(15,23,42,.10); }
+
+  #open-panel { position: absolute; top: 10px; left: 10px; z-index: 1000; display: none; }
+  #app.collapsed #panel { display: none; }
+  #app.collapsed #open-panel { display: inline-flex; }
+
+  #legend { position: absolute; right: 10px; bottom: 26px; z-index: 1000; width: 256px; max-height: calc(100% - 120px); display: flex; flex-direction: column; }
+  #legend[hidden] { display: none; }
+  #legend .lg-head { display: flex; align-items: center; padding: 8px 10px 6px 12px; border-bottom: 1px solid var(--line); }
+  #legend .lg-head b { flex: 1; font-size: 12px; }
+  #legend .lg-body { overflow-y: auto; padding: 4px 12px 10px; }
+  #legend.min .lg-body { display: none; }
+  #legend.min .lg-head { border-bottom: 0; }
+  .lg-layer { padding: 8px 0 4px; border-bottom: 1px dashed var(--line); }
+  .lg-layer:last-child { border-bottom: 0; }
+  .lg-title { font-size: 11.5px; font-weight: 700; margin-bottom: 5px; display: flex; gap: 6px; align-items: baseline; }
+  .lg-title .side { font-size: 9.5px; font-weight: 800; color: #fff; background: var(--ink-2); border-radius: 4px; padding: 1px 5px; }
+  .lg-class { display: grid; grid-template-columns: 14px 1fr auto; gap: 7px; align-items: center; font-size: 11px; line-height: 1.5; }
+  .lg-class i { width: 14px; height: 10px; border-radius: 2px; border: 1px solid rgba(15,23,42,.18); }
+  .lg-class em { font-style: normal; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .lg-ramp { height: 10px; border-radius: 3px; border: 1px solid rgba(15,23,42,.18); }
+  .lg-ramp-labels { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .lg-line { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .lg-line i { width: 22px; height: 0; border-top: 3px solid; }
+
+  #coords { position: absolute; left: 10px; bottom: 26px; z-index: 999; padding: 4px 9px; font-size: 10.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; pointer-events: none; }
+  #coords:empty { display: none; }
+  .leaflet-bottom.leaflet-left .leaflet-control-scale { margin-bottom: 52px; }
+
+  #compare-bar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1002; display: none; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; max-width: calc(100% - 120px); }
+  #compare-bar.on { display: flex; }
+  #compare-bar label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
+  #compare-bar select { font: inherit; font-size: 12px; border: 1px solid var(--line-2); border-radius: 6px; padding: 4px 6px; max-width: 190px; background: var(--card); }
+
+  #swipe { position: absolute; top: 0; bottom: 0; width: 0; z-index: 999; display: none; }
+  #swipe.on { display: block; }
+  #swipe .bar { position: absolute; top: 0; bottom: 0; left: -1.5px; width: 3px; background: #fff; box-shadow: 0 0 0 1px rgba(15,23,42,.35); pointer-events: none; }
+  #swipe .handle { position: absolute; top: 50%; left: -17px; width: 34px; height: 34px; margin-top: -17px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); cursor: ew-resize; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(15,23,42,.3); touch-action: none; }
+  #swipe .handle svg { width: 18px; height: 18px; }
+  #swipe .tag { pointer-events: none; position: absolute; top: 58px; font-size: 10.5px; font-weight: 800; color: #fff; background: rgba(15,23,42,.78); padding: 3px 8px; border-radius: 5px; white-space: nowrap; }
+  #swipe .tag.l { right: 12px; }
+  #swipe .tag.r { left: 12px; }
+
+  #toast { position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%); z-index: 1003; background: var(--ink); color: #fff; font-size: 12px; padding: 8px 12px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: 80%; }
+  #toast.on { opacity: .95; }
+
+  #fatal { position: absolute; inset: 0; z-index: 1100; display: none; align-items: center; justify-content: center; background: rgba(248,250,252,.92); padding: 24px; }
+  #fatal.on { display: flex; }
+  #fatal .card { max-width: 440px; padding: 18px 20px; font-size: 13px; line-height: 1.5; }
+  #fatal code { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 12px; }
+
+  #modal { position: absolute; inset: 0; z-index: 1200; display: none; align-items: center; justify-content: center; background: rgba(15,23,42,.35); padding: 20px; }
+  #modal.on { display: flex; }
+  #modal .card { width: 100%; max-width: 480px; max-height: 100%; overflow-y: auto; padding: 16px 18px; }
+  #modal h3 { margin: 0 0 4px; font-size: 15px; }
+  #modal p { margin: 0 0 10px; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+  #modal dl { display: grid; grid-template-columns: 128px 1fr; gap: 5px 10px; margin: 0; font-size: 12px; }
+  #modal dt { color: var(--muted); font-weight: 600; }
+  #modal dd { margin: 0; word-break: break-word; }
+  #modal .m-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  #modal .m-head div { flex: 1; }
+
+  .leaflet-popup-content { margin: 10px 12px; font-size: 12px; min-width: 220px; }
+  .leaflet-popup-content-wrapper { border-radius: 10px; }
+  .pp-head { font-weight: 800; font-size: 12.5px; margin-bottom: 2px; }
+  .pp-coord { font-size: 10.5px; color: var(--muted); margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+  .pp-sec { border-top: 1px solid var(--line); padding: 6px 0 2px; }
+  .pp-sec .pp-name { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2px; }
+  .pp-val { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; }
+  .pp-val i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(15,23,42,.2); flex-shrink: 0; }
+  .pp-sub { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .pp-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  .pp-table td { padding: 1px 0; vertical-align: top; }
+  .pp-table td:first-child { color: var(--muted); padding-right: 8px; white-space: nowrap; }
+  .pp-table td:last-child { font-weight: 600; text-align: right; }
+  .pp-empty { font-size: 12px; color: var(--muted); }
+  .pp-note { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 5px; font-size: 10px; line-height: 1.35; color: var(--muted); }
+
+  .mun-label { width: 0 !important; height: 0 !important; pointer-events: none; }
+  .mun-label span { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); font-size: 11px; font-weight: 700; color: var(--ink); text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; white-space: nowrap; }
+
+  @media (max-width: 760px) {
+    #panel { position: absolute; inset: 0 auto 0 0; width: min(var(--panel-w), 88%); box-shadow: 8px 0 24px rgba(15,23,42,.18); }
+    #legend { width: 210px; bottom: 60px; }
+    #compare-bar { flex-wrap: wrap; max-width: calc(100% - 20px); top: 48px; }
+    #coords { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="panel" aria-label="Painel de camadas">
+    <header>
+      <div class="title">Camadas do WebSIG<small>Clique para ligar ou desligar</small></div>
+      <button class="icon-btn" id="close-panel" title="Recolher painel" aria-label="Recolher painel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </header>
+    <div id="basemaps">
+      <p class="section-label">Mapa base</p>
+      <div class="segmented" role="group" aria-label="Mapa base">
+        <button data-base="sat" aria-pressed="true">Satélite</button>
+        <button data-base="light" aria-pressed="false">Claro</button>
+        <button data-base="topo" aria-pressed="false">Relevo</button>
+        <button data-base="none" aria-pressed="false">Nenhum</button>
+      </div>
+    </div>
+    <div id="toolbar">
+      <button class="btn primary" id="btn-compare" title="Comparar duas camadas lado a lado com uma cortina deslizante">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg>
+        Comparar
+      </button>
+      <button class="btn" id="btn-clear" title="Desligar todas as camadas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        Limpar
+      </button>
+    </div>
+    <div id="tree" role="tree"></div>
+    <footer id="panel-foot">Carregando dados…</footer>
+  </aside>
+
+  <main id="map-wrap">
+    <div id="map" aria-label="Mapa interativo"></div>
+    <button class="btn" id="open-panel" aria-label="Abrir painel de camadas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      Camadas
+    </button>
+
+    <div id="compare-bar" class="card" role="group" aria-label="Comparação">
+      <label for="cmp-left">Esq.</label>
+      <select id="cmp-left"></select>
+      <button class="icon-btn" id="cmp-swap" title="Inverter lados" aria-label="Inverter lados">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16l-4-4 4-4M3 12h18M17 8l4 4-4 4"/></svg>
+      </button>
+      <label for="cmp-right">Dir.</label>
+      <select id="cmp-right"></select>
+      <button class="icon-btn" id="cmp-close" title="Sair da comparação" aria-label="Sair da comparação">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="swipe" aria-hidden="true">
+      <div class="bar"></div>
+      <span class="tag l" id="tag-left"></span>
+      <span class="tag r" id="tag-right"></span>
+      <div class="handle" id="swipe-handle" title="Arraste para comparar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/></svg>
+      </div>
+    </div>
+
+    <div id="legend" class="card" hidden>
+      <div class="lg-head">
+        <b>Legenda</b>
+        <button class="mini" id="legend-toggle" title="Minimizar legenda" aria-label="Minimizar legenda">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
+        </button>
+      </div>
+      <div class="lg-body" id="legend-body"></div>
+    </div>
+
+    <div id="coords" class="card"></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="fatal"><div class="card" id="fatal-msg"></div></div>
+    <div id="modal" role="dialog" aria-modal="true"><div class="card" id="modal-card"></div></div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ------------------------------------------------------------------ utilidades
+  const $ = (sel) => document.querySelector(sel);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const nf = {};
+  const fmt = (v, d) => {
+    if (v === null || v === undefined || Number.isNaN(v)) return "—";
+    nf[d] = nf[d] || new Intl.NumberFormat("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d });
+    return nf[d].format(v);
+  };
+  const ICON = {
+    zoom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
+    chev: '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  };
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("on");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("on"), 3200);
+  }
+
+  // SIRGAS 2000 / UTM (fórmulas de Snyder, elipsoide GRS80)
+  function toUTM(lat, lon, zone) {
+    const a = 6378137, f = 1 / 298.257222101, k0 = 0.9996;
+    const e2 = f * (2 - f), ep2 = e2 / (1 - e2), e4 = e2 * e2, e6 = e4 * e2;
+    const phi = lat * Math.PI / 180, lam = lon * Math.PI / 180, lam0 = ((zone - 1) * 6 - 177) * Math.PI / 180;
+    const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+    const T = Math.tan(phi) ** 2, C = ep2 * Math.cos(phi) ** 2, A = Math.cos(phi) * (lam - lam0);
+    const M = a * ((1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256) * phi - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024) * Math.sin(2 * phi)
+      + (15 * e4 / 256 + 45 * e6 / 1024) * Math.sin(4 * phi) - (35 * e6 / 3072) * Math.sin(6 * phi));
+    const E = k0 * N * (A + (1 - T + C) * A ** 3 / 6 + (5 - 18 * T + T * T + 72 * C - 58 * ep2) * A ** 5 / 120) + 500000;
+    let Nn = k0 * (M + N * Math.tan(phi) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A ** 4 / 24 + (61 - 58 * T + T * T + 600 * C - 330 * ep2) * A ** 6 / 720));
+    if (lat < 0) Nn += 10000000;
+    return [E, Nn];
+  }
+  const coordText = (ll) => {
+    const [E, N] = toUTM(ll.lat, ll.lng, 23);
+    return `${fmt(ll.lat, 5)}°, ${fmt(ll.lng, 5)}° · UTM 23S E ${fmt(E, 0)} N ${fmt(N, 0)}`;
+  };
+
+  // ------------------------------------------------------------------ estado
+  const S = {
+    base: "", manifest: null, layers: {}, zCounter: 10, compare: null, homeBounds: null, userMoved: false,
+  };
+
+  // ------------------------------------------------------------------ mapa
+  const map = L.map("map", { zoomControl: false, minZoom: 5, maxZoom: 18, zoomSnap: 0.5, attributionControl: true });
+  map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
+  L.control.zoom({ position: "topright", zoomInTitle: "Aproximar", zoomOutTitle: "Afastar" }).addTo(map);
+  L.control.scale({ metric: true, imperial: false, position: "bottomleft" }).addTo(map);
+  map.setView([-23.70, -47.20], 10);
+
+  const HomeControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd() {
+      const div = L.DomUtil.create("div", "leaflet-bar");
+      const a = L.DomUtil.create("a", "", div);
+      a.href = "#"; a.title = "Enquadrar a área de estudo"; a.setAttribute("role", "button");
+      a.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:7px"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>';
+      L.DomEvent.on(a, "click", (e) => { L.DomEvent.preventDefault(e); fitHome(); });
+      L.DomEvent.disableClickPropagation(div);
+      return div;
+    },
+  });
+  new HomeControl().addTo(map);
+
+  function makePane(name, z) {
+    const p = map.createPane(name);
+    p.style.zIndex = z;
+    return p;
+  }
+  makePane("rasters", 350);
+  const paneLeft = makePane("cmpLeft", 360);
+  const paneRight = makePane("cmpRight", 361);
+  makePane("vectors", 420);
+  const labelsPane = makePane("baseLabels", 440);
+  labelsPane.style.pointerEvents = "none";
+  makePane("munLabels", 450);
+
+  const BASEMAPS = {
+    sat: [
+      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 18, attribution: "Imagens © Esri, Maxar, Earthstar Geographics" }),
+      L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 18, pane: "baseLabels", opacity: 0.85 }),
+    ],
+    light: [L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      maxZoom: 18, subdomains: "abcd", attribution: "© OpenStreetMap · © CARTO" })],
+    topo: [L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+      maxZoom: 17, subdomains: "abc", attribution: "© OpenStreetMap · SRTM · © OpenTopoMap (CC-BY-SA)" })],
+    none: [],
+  };
+  let currentBase = "sat";
+  BASEMAPS.sat.forEach((l) => l.addTo(map));
+  document.querySelectorAll("[data-base]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.base;
+      if (key === currentBase) return;
+      BASEMAPS[currentBase].forEach((l) => map.removeLayer(l));
+      BASEMAPS[key].forEach((l) => l.addTo(map));
+      currentBase = key;
+      document.querySelectorAll("[data-base]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+    });
+  });
+
+  // O iframe pode nascer oculto ou estreito: reenquadra a cada redimensionamento
+  // até o visitante mexer no mapa pela primeira vez
+  const mapEl = $("#map");
+  ["mousedown", "wheel", "touchstart", "keydown"].forEach((ev) => mapEl.addEventListener(ev, () => { S.userMoved = true; }, { passive: true }));
+  new ResizeObserver(() => {
+    map.invalidateSize({ pan: false });
+    if (S.homeBounds && !S.userMoved) fitHome();
+    if (S.compare) updateSwipe();
+  }).observe(mapEl);
+
+  function fitHome() {
+    if (!S.homeBounds) return;
+    const size = map.getSize();
+    if (size.x === 0 || size.y === 0) return;
+    const narrow = window.innerWidth <= 760;
+    const legendRoom = narrow || size.x < 640 ? 20 : 270;
+    map.fitBounds(S.homeBounds, { paddingTopLeft: [20, 20], paddingBottomRight: [legendRoom, 20] });
+  }
+
+  // ------------------------------------------------------------------ carregamento do manifest
+  async function resolveBase() {
+    const candidates = [];
+    const add = (rel, base) => {
+      try {
+        const href = new URL(rel, base).href;
+        if (!candidates.includes(href)) candidates.push(href);
+      } catch (e) { /* base indisponível */ }
+    };
+    add("app/static/websig/", document.baseURI);
+    try { add("app/static/websig/", window.parent.location.href); } catch (e) { /* cross-origin */ }
+    add("/app/static/websig/", document.baseURI);
+    for (const base of candidates) {
+      try {
+        const res = await fetch(base + "manifest.json", { cache: "no-cache" });
+        if (res.ok) return { base, manifest: await res.json() };
+      } catch (e) { /* tenta o próximo */ }
+    }
+    throw new Error(candidates.join(" | "));
+  }
+
+  const layerUrl = (def) => S.base + def.url + "?v=" + encodeURIComponent(S.manifest.generated);
+
+  // ------------------------------------------------------------------ construção do painel
+  function swatchHtml(def) {
+    const lg = def.legend;
+    if (lg.type === "categorical") {
+      return `<span class="swatch">${lg.classes.map((c) => `<span style="background:${c.color}"></span>`).join("")}</span>`;
+    }
+    if (lg.type === "continuous") {
+      return `<span class="swatch" style="background:linear-gradient(90deg,${lg.stops.join(",")})"></span>`;
+    }
+    if (lg.dashArray) return `<span class="swatch dash" style="border-top-color:${lg.color}"></span>`;
+    return `<span class="swatch line" style="background:${lg.color}"></span>`;
+  }
+
+  function buildTree() {
+    const tree = $("#tree");
+    tree.innerHTML = "";
+    S.manifest.articles.forEach((art, ai) => {
+      const sec = document.createElement("section");
+      sec.className = "article";
+      sec.innerHTML = `
+        <div class="article-head">
+          <span class="badge">Artigo ${ai + 1}</span>
+          <div><b>${esc(art.title)}</b><small>${esc(art.subtitle)} · <a href="${esc(art.url)}" target="_blank" rel="noopener">ler o artigo ↗</a></small></div>
+        </div>`;
+      art.groups.forEach((g) => {
+        const group = document.createElement("div");
+        group.className = "group" + (g.collapsed ? "" : " open");
+        group.dataset.group = g.id;
+        group.innerHTML = `
+          <button class="group-head" aria-expanded="${!g.collapsed}">${ICON.chev}<span class="gtitle">${esc(g.title)}</span><span class="count">0/${g.layers.length}</span></button>
+          <div class="group-body"></div>`;
+        const head = group.querySelector(".group-head");
+        head.addEventListener("click", () => {
+          const open = group.classList.toggle("open");
+          head.setAttribute("aria-expanded", String(open));
+        });
+        const body = group.querySelector(".group-body");
+        g.layers.forEach((id) => body.appendChild(buildLayerRow(S.manifest.layers[id])));
+        sec.appendChild(group);
+      });
+      tree.appendChild(sec);
+    });
+  }
+
+  function buildLayerRow(def) {
+    const st = S.layers[def.id];
+    const row = document.createElement("div");
+    row.className = "layer";
+    row.dataset.id = def.id;
+    const sizeTxt = def.size_kb >= 1024 ? `${fmt(def.size_kb / 1024, 1)} MB` : `${def.size_kb} KB`;
+    row.innerHTML = `
+      <div class="layer-row">
+        <label title="${esc(def.name)}">
+          <input type="checkbox">
+          ${swatchHtml(def)}
+          <span class="lname">${esc(def.name)}</span>
+        </label>
+        <span class="status"></span>
+        <span class="row-actions">
+          <button class="mini" data-act="zoom" title="Aproximar da camada" aria-label="Aproximar de ${esc(def.name)}">${ICON.zoom}</button>
+          <button class="mini" data-act="info" title="Metadados" aria-label="Metadados de ${esc(def.name)}">${ICON.info}</button>
+        </span>
+      </div>
+      <div class="layer-ctrl">
+        <input type="range" min="0" max="100" step="5" value="${Math.round(st.opacity * 100)}" aria-label="Opacidade de ${esc(def.name)}">
+        <output>${Math.round(st.opacity * 100)}%</output>
+        <span class="size" title="Tamanho do download">${sizeTxt}</span>
+      </div>`;
+    const cb = row.querySelector("input[type=checkbox]");
+    cb.addEventListener("change", () => setActive(def.id, cb.checked));
+    const range = row.querySelector("input[type=range]");
+    range.addEventListener("input", () => {
+      st.opacity = range.value / 100;
+      row.querySelector("output").textContent = `${range.value}%`;
+      applyOpacity(def.id);
+    });
+    row.querySelector('[data-act="zoom"]').addEventListener("click", () => map.fitBounds(def.bounds, { padding: [30, 30] }));
+    row.querySelector('[data-act="info"]').addEventListener("click", () => showInfo(def));
+    st.row = row;
+    return row;
+  }
+
+  function renderRow(id) {
+    const st = S.layers[id];
+    if (!st.row) return;
+    const def = S.manifest.layers[id];
+    const lockedByCompare = S.compare && def.kind === "raster";
+    st.row.classList.toggle("active", st.active);
+    st.row.classList.toggle("disabled", !!lockedByCompare);
+    const cb = st.row.querySelector("input[type=checkbox]");
+    cb.checked = st.active;
+    cb.disabled = !!lockedByCompare;
+    st.row.querySelector(".status").innerHTML = st.loading ? '<span class="spinner" title="Carregando"></span>' : "";
+  }
+
+  function updateCounts() {
+    document.querySelectorAll(".group").forEach((g) => {
+      const ids = S.manifest.articles.flatMap((a) => a.groups).find((x) => x.id === g.dataset.group).layers;
+      const on = ids.filter((id) => S.layers[id].active).length;
+      const c = g.querySelector(".count");
+      c.textContent = `${on}/${ids.length}`;
+      c.classList.toggle("on", on > 0);
+    });
+  }
+
+  // ------------------------------------------------------------------ camadas
+  function vectorStyle(def, feature, opacity) {
+    const s = def.style;
+    const color = def.categorize ? def.categorize.colors[feature.properties[def.categorize.field]] : s.color;
+    return {
+      color: color || "#334155",
+      weight: s.weight ?? 2,
+      opacity: opacity,
+      dashArray: s.dashArray || null,
+      fill: s.fill !== false,
+      fillColor: color,
+      fillOpacity: (s.fillOpacity ?? 0.3) * opacity,
+    };
+  }
+
+  function haloStyle(def, opacity) {
+    return { color: "#FFFFFF", weight: (def.style.weight ?? 2) + 2.5, opacity: 0.75 * opacity, fill: false, lineCap: "round", lineJoin: "round" };
+  }
+
+  function polygonsOf(g) {
+    if (!g) return [];
+    if (g.type === "Polygon") return [g.coordinates];
+    if (g.type === "MultiPolygon") return g.coordinates;
+    if (g.type === "GeometryCollection") return g.geometries.flatMap(polygonsOf);
+    return [];
+  }
+
+  function indexFeatures(geojson) {
+    const out = [];
+    for (const f of geojson.features) {
+      const polys = polygonsOf(f.geometry);
+      if (!polys.length) continue;
+      const parts = polys.map((rings) => {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const [x, y] of rings[0]) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+        return { rings, bbox: [minX, minY, maxX, maxY] };
+      });
+      out.push({ props: f.properties, parts });
+    }
+    return out;
+  }
+
+  function pointInRings(x, y, rings) {
+    let inside = false;
+    for (const ring of rings) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  async function ensureLoaded(id) {
+    const st = S.layers[id];
+    if (st.ready) return;
+    if (st.promise) return st.promise;
+    const def = S.manifest.layers[id];
+    st.loading = true;
+    renderRow(id);
+    st.promise = (async () => {
+      if (def.kind === "raster") {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = layerUrl(def);
+        await img.decode();
+        st.img = img;
+      } else {
+        const res = await fetch(layerUrl(def));
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        st.index = indexFeatures(data);
+        const renderer = L.canvas({ pane: "vectors", padding: 0.3 });
+        st.leaflet = L.geoJSON(data, {
+          pane: "vectors",
+          interactive: false,
+          renderer,
+          style: (feature) => vectorStyle(def, feature, st.opacity),
+        });
+        if (def.style.halo) {
+          // contorno branco por baixo para a linha continuar legível sobre o satélite
+          st.halo = L.geoJSON(data, { pane: "vectors", interactive: false, renderer, style: () => haloStyle(def, st.opacity) });
+        }
+        if (def.label) {
+          st.labels = L.layerGroup(data.features.map((f) => L.marker([f.properties[def.label.lat], f.properties[def.label.lon]], {
+            pane: "munLabels", interactive: false, keyboard: false,
+            icon: L.divIcon({ className: "mun-label", html: `<span>${esc(f.properties[def.label.field])}</span>`, iconSize: null }),
+          })));
+        }
+      }
+      st.ready = true;
+    })();
+    try {
+      await st.promise;
+    } finally {
+      st.loading = false;
+      st.promise = null;
+      renderRow(id);
+    }
+  }
+
+  function addToMap(id) {
+    const st = S.layers[id];
+    const def = S.manifest.layers[id];
+    if (def.kind === "raster") {
+      if (S.compare) return;
+      st.overlay = L.imageOverlay(st.img.src, def.bounds, { pane: "rasters", opacity: st.opacity, className: "raster", interactive: false, crossOrigin: "anonymous" });
+      st.overlay.addTo(map);
+      st.overlay.setZIndex(++S.zCounter);
+    } else {
+      if (st.halo) st.halo.addTo(map);
+      st.leaflet.addTo(map);
+      if (st.labels) st.labels.addTo(map);
+    }
+    st.order = ++S.zCounter;
+  }
+
+  function removeFromMap(id) {
+    const st = S.layers[id];
+    if (st.overlay) { map.removeLayer(st.overlay); st.overlay = null; }
+    if (st.halo && map.hasLayer(st.halo)) map.removeLayer(st.halo);
+    if (st.leaflet && map.hasLayer(st.leaflet)) map.removeLayer(st.leaflet);
+    if (st.labels && map.hasLayer(st.labels)) map.removeLayer(st.labels);
+  }
+
+  function applyOpacity(id) {
+    const st = S.layers[id];
+    const def = S.manifest.layers[id];
+    if (st.overlay) st.overlay.setOpacity(st.opacity);
+    if (st.leaflet) st.leaflet.setStyle((f) => vectorStyle(def, f, st.opacity));
+    if (st.halo) st.halo.setStyle(() => haloStyle(def, st.opacity));
+    if (S.compare) S.compare.overlays.forEach((o) => { if (o.id === id) o.layer.setOpacity(st.opacity); });
+  }
+
+  async function setActive(id, on) {
+    const st = S.layers[id];
+    st.active = on;
+    renderRow(id);
+    if (on) {
+      try {
+        await ensureLoaded(id);
+      } catch (err) {
+        st.active = false;
+        renderRow(id);
+        updateCounts();
+        toast(`Não foi possível carregar “${S.manifest.layers[id].name}”.`);
+        return;
+      }
+      if (!st.active) return; // desligada enquanto carregava
+      removeFromMap(id);
+      addToMap(id);
+    } else {
+      removeFromMap(id);
+      st.pixels = null;
+    }
+    updateCounts();
+    renderLegend();
+  }
+
+  // ------------------------------------------------------------------ legenda
+  function legendBlock(def, sideTag) {
+    const lg = def.legend;
+    const side = sideTag ? `<span class="side">${sideTag}</span>` : "";
+    let body = "";
+    if (lg.type === "categorical") {
+      body = lg.classes.map((c) => {
+        const area = c.area_km2 !== undefined ? `<em>${fmt(c.area_km2, 2)} km² · ${fmt(c.pct, 1)}%</em>` : "<em></em>";
+        return `<div class="lg-class"><i style="background:${c.color}"></i><span>${esc(c.label)}</span>${area}</div>`;
+      }).join("");
+    } else if (lg.type === "continuous") {
+      const clipLow = lg.data_range[0] < lg.vmin ? "≤ " : "";
+      const clipHigh = lg.data_range[1] > lg.vmax ? "≥ " : "";
+      body = `<div class="lg-ramp" style="background:linear-gradient(90deg,${lg.stops.join(",")})"></div>
+        <div class="lg-ramp-labels"><span>${clipLow}${fmt(lg.vmin, lg.decimals)}</span><span>${esc(lg.unit)}</span><span>${clipHigh}${fmt(lg.vmax, lg.decimals)}</span></div>`;
+    } else {
+      const style = lg.dashArray ? "dashed" : "solid";
+      body = `<div class="lg-line"><i style="border-top-color:${lg.color};border-top-style:${style}"></i><span>Fonte: ${esc(def.meta.source)}</span></div>`;
+    }
+    return `<div class="lg-layer"><div class="lg-title">${side}<span>${esc(def.name)}</span></div>${body}</div>`;
+  }
+
+  function renderLegend() {
+    const blocks = [];
+    if (S.compare) {
+      blocks.push(legendBlock(S.manifest.layers[S.compare.left], "ESQ"));
+      blocks.push(legendBlock(S.manifest.layers[S.compare.right], "DIR"));
+    }
+    Object.keys(S.layers)
+      .filter((id) => S.layers[id].active && !(S.compare && S.manifest.layers[id].kind === "raster"))
+      .sort((a, b) => S.layers[b].order - S.layers[a].order)
+      .forEach((id) => blocks.push(legendBlock(S.manifest.layers[id])));
+    $("#legend-body").innerHTML = blocks.join("");
+    $("#legend").hidden = blocks.length === 0;
+  }
+  $("#legend-toggle").addEventListener("click", () => $("#legend").classList.toggle("min"));
+
+  // ------------------------------------------------------------------ consulta por clique
+  function rasterPixels(id) {
+    const st = S.layers[id];
+    const def = S.manifest.layers[id];
+    if (!st.pixels) {
+      const canvas = document.createElement("canvas");
+      canvas.width = def.width;
+      canvas.height = def.height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(st.img, 0, 0);
+      st.pixels = ctx.getImageData(0, 0, def.width, def.height).data;
+    }
+    return st.pixels;
+  }
+
+  const lutCache = new WeakMap();
+  function nearestIndex(colors, r, g, b) {
+    let best = 0, bestD = Infinity;
+    colors.forEach((hex, i) => {
+      const n = parseInt(hex.slice(1), 16);
+      const d = (((n >> 16) & 255) - r) ** 2 + (((n >> 8) & 255) - g) ** 2 + ((n & 255) - b) ** 2;
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    return best;
+  }
+
+  function sampleRaster(id, latlng) {
+    const def = S.manifest.layers[id];
+    if (!S.layers[id].img) return null;
+    const p = L.CRS.EPSG3857.project(latlng);
+    const [minx, miny, maxx, maxy] = def.bounds_3857;
+    if (p.x < minx || p.x >= maxx || p.y <= miny || p.y > maxy) return null;
+    const col = Math.floor(((p.x - minx) / (maxx - minx)) * def.width);
+    const row = Math.floor(((maxy - p.y) / (maxy - miny)) * def.height);
+    const px = rasterPixels(id);
+    const i = (row * def.width + col) * 4;
+    if (px[i + 3] < 128) return null;
+    const lg = def.legend;
+    if (lg.type === "categorical") {
+      const c = lg.classes[nearestIndex(lg.classes.map((k) => k.color), px[i], px[i + 1], px[i + 2])];
+      return `<div class="pp-val"><i style="background:${c.color}"></i>${esc(c.label)}</div>`;
+    }
+    let lookup = lutCache.get(lg);
+    if (!lookup) { lookup = new Map(lg.lut.map((h, k) => [h, k])); lutCache.set(lg, lookup); }
+    const hex = "#" + [px[i], px[i + 1], px[i + 2]].map((v) => v.toString(16).padStart(2, "0")).join("").toUpperCase();
+    const k = lookup.has(hex) ? lookup.get(hex) : nearestIndex(lg.lut, px[i], px[i + 1], px[i + 2]);
+    const n = lg.lut.length - 1;
+    const value = lg.vmin + (k / n) * (lg.vmax - lg.vmin);
+    const prefix = k === 0 && lg.data_range[0] < lg.vmin ? "≤ " : k === n && lg.data_range[1] > lg.vmax ? "≥ " : "≈ ";
+    return `<div class="pp-val"><i style="background:${lg.lut[k]}"></i>${prefix}${fmt(value, lg.decimals)} <span class="pp-sub">${esc(lg.unit)}</span></div>`;
+  }
+
+  function fieldValue(v, kind) {
+    if (v === null || v === undefined || v === "") return "—";
+    if (kind === "km2") return `${fmt(v, 2)} km²`;
+    if (kind === "pct") return `${fmt(v, 1)}%`;
+    if (kind === "int") return fmt(v, 0);
+    return esc(v);
+  }
+
+  function sampleVector(id, latlng) {
+    const st = S.layers[id];
+    const def = S.manifest.layers[id];
+    if (!st.index || def.identify === false) return null;
+    const x = latlng.lng, y = latlng.lat;
+    for (const feat of st.index) {
+      for (const part of feat.parts) {
+        const b = part.bbox;
+        if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+        if (pointInRings(x, y, part.rings)) {
+          const rows = def.fields.map(([field, label, kind]) => `<tr><td>${esc(label)}</td><td>${fieldValue(feat.props[field], kind)}</td></tr>`).join("");
+          return `<table class="pp-table">${rows}</table>`;
+        }
+      }
+    }
+    return null;
+  }
+
+  map.on("click", (e) => {
+    const sections = [];
+    const push = (def, html, tag) => sections.push(`<div class="pp-sec"><div class="pp-name">${tag ? tag + " · " : ""}${esc(def.name)}</div>${html}</div>`);
+    if (S.compare) {
+      const x = map.latLngToContainerPoint(e.latlng).x;
+      const id = x < S.compare.x ? S.compare.left : S.compare.right;
+      const html = sampleRaster(id, e.latlng);
+      if (html) push(S.manifest.layers[id], html, x < S.compare.x ? "Esq." : "Dir.");
+    }
+    Object.keys(S.layers)
+      .filter((id) => S.layers[id].active && S.layers[id].ready)
+      .sort((a, b) => S.layers[b].order - S.layers[a].order)
+      .forEach((id) => {
+        const def = S.manifest.layers[id];
+        if (def.kind === "raster") {
+          if (S.compare) return;
+          const html = sampleRaster(id, e.latlng);
+          if (html) push(def, html);
+        } else {
+          const html = sampleVector(id, e.latlng);
+          if (html) push(def, html);
+        }
+      });
+    const hasRaster = sections.length && (S.compare || Object.keys(S.layers).some((id) => S.layers[id].active && S.manifest.layers[id].kind === "raster"));
+    const note = hasRaster ? '<div class="pp-note">Valores de raster lidos da versão web reamostrada (≈16–25 m); consulte os GeoTIFFs originais (10 m) para análise.</div>' : "";
+    const body = sections.length ? sections.join("") + note : '<div class="pp-empty">Nenhuma camada ativa tem dado neste ponto. Ligue uma camada no painel e clique de novo.</div>';
+    L.popup({ maxWidth: 300, autoPanPadding: [20, 20] })
+      .setLatLng(e.latlng)
+      .setContent(`<div class="pp-head">Consulta no ponto</div><div class="pp-coord">${coordText(e.latlng)}</div>${body}`)
+      .openOn(map);
+  });
+
+  map.on("mousemove", (e) => { $("#coords").textContent = coordText(e.latlng); });
+  map.on("mouseout", () => { $("#coords").textContent = ""; });
+
+  // ------------------------------------------------------------------ comparação (cortina)
+  const rasterIds = () => Object.keys(S.manifest.layers).filter((id) => S.manifest.layers[id].kind === "raster");
+
+  function fillCompareSelects() {
+    ["#cmp-left", "#cmp-right"].forEach((sel) => {
+      const el = $(sel);
+      el.innerHTML = "";
+      S.manifest.articles.forEach((art) => art.groups.forEach((g) => {
+        const ids = g.layers.filter((id) => S.manifest.layers[id].kind === "raster");
+        if (!ids.length) return;
+        const og = document.createElement("optgroup");
+        og.label = g.title;
+        ids.forEach((id) => {
+          const o = document.createElement("option");
+          o.value = id;
+          o.textContent = S.manifest.layers[id].name;
+          og.appendChild(o);
+        });
+        el.appendChild(og);
+      }));
+    });
+  }
+
+  function updateSwipe() {
+    if (!S.compare) return;
+    const size = map.getSize();
+    S.compare.x = Math.max(0, Math.min(size.x, S.compare.x));
+    $("#swipe").style.left = `${S.compare.x}px`;
+    const nw = map.containerPointToLayerPoint([0, 0]);
+    const se = map.containerPointToLayerPoint(size);
+    const mid = map.containerPointToLayerPoint([S.compare.x, 0]).x;
+    paneLeft.style.clipPath = `polygon(${nw.x}px ${nw.y}px, ${mid}px ${nw.y}px, ${mid}px ${se.y}px, ${nw.x}px ${se.y}px)`;
+    paneRight.style.clipPath = `polygon(${mid}px ${nw.y}px, ${se.x}px ${nw.y}px, ${se.x}px ${se.y}px, ${mid}px ${se.y}px)`;
+  }
+  map.on("move zoom zoomend resize viewreset", updateSwipe);
+
+  async function renderCompare() {
+    const cmp = S.compare;
+    const ids = [cmp.left, cmp.right];
+    ids.forEach((id) => { S.layers[id].loading = true; renderRow(id); });
+    try {
+      await Promise.all(ids.map((id) => ensureLoaded(id)));
+    } catch (e) {
+      toast("Não foi possível carregar uma das camadas da comparação.");
+      return;
+    } finally {
+      ids.forEach((id) => { S.layers[id].loading = false; renderRow(id); });
+    }
+    if (S.compare !== cmp) return;
+    cmp.overlays.forEach((o) => map.removeLayer(o.layer));
+    cmp.overlays = [["cmpLeft", cmp.left], ["cmpRight", cmp.right]].map(([pane, id]) => ({
+      id,
+      layer: L.imageOverlay(S.layers[id].img.src, S.manifest.layers[id].bounds, {
+        pane, opacity: S.layers[id].opacity, className: "raster", interactive: false, crossOrigin: "anonymous",
+      }).addTo(map),
+    }));
+    $("#tag-left").textContent = `◀ ${S.manifest.layers[cmp.left].name}`;
+    $("#tag-right").textContent = `${S.manifest.layers[cmp.right].name} ▶`;
+    updateSwipe();
+    renderLegend();
+  }
+
+  function startCompare() {
+    if (S.compare) return stopCompare();
+    const art = S.manifest.articles[0];
+    const actives = rasterIds().filter((id) => S.layers[id].active).sort((a, b) => S.layers[a].order - S.layers[b].order);
+    const left = actives.length >= 2 ? actives[actives.length - 2] : art.compare[0];
+    const right = actives.length >= 1 ? actives[actives.length - 1] : art.compare[1];
+    S.compare = { left, right: right === left ? art.compare[1] : right, x: map.getSize().x / 2, overlays: [] };
+    rasterIds().forEach((id) => { if (S.layers[id].overlay) { map.removeLayer(S.layers[id].overlay); S.layers[id].overlay = null; } });
+    $("#cmp-left").value = S.compare.left;
+    $("#cmp-right").value = S.compare.right;
+    $("#compare-bar").classList.add("on");
+    $("#swipe").classList.add("on");
+    $("#btn-compare").classList.remove("primary");
+    $("#btn-compare").lastChild.textContent = " Sair";
+    rasterIds().forEach(renderRow);
+    renderCompare();
+  }
+
+  function stopCompare() {
+    if (!S.compare) return;
+    S.compare.overlays.forEach((o) => map.removeLayer(o.layer));
+    S.compare = null;
+    paneLeft.style.clipPath = "";
+    paneRight.style.clipPath = "";
+    $("#compare-bar").classList.remove("on");
+    $("#swipe").classList.remove("on");
+    $("#btn-compare").classList.add("primary");
+    $("#btn-compare").lastChild.textContent = " Comparar";
+    rasterIds()
+      .filter((id) => S.layers[id].active && S.layers[id].ready)
+      .sort((a, b) => S.layers[a].order - S.layers[b].order)
+      .forEach((id) => addToMap(id));
+    rasterIds().forEach(renderRow);
+    renderLegend();
+  }
+
+  $("#btn-compare").addEventListener("click", startCompare);
+  $("#cmp-close").addEventListener("click", stopCompare);
+  $("#cmp-left").addEventListener("change", (e) => { S.compare.left = e.target.value; renderCompare(); });
+  $("#cmp-right").addEventListener("change", (e) => { S.compare.right = e.target.value; renderCompare(); });
+  $("#cmp-swap").addEventListener("click", () => {
+    [S.compare.left, S.compare.right] = [S.compare.right, S.compare.left];
+    $("#cmp-left").value = S.compare.left;
+    $("#cmp-right").value = S.compare.right;
+    renderCompare();
+  });
+  L.DomEvent.disableClickPropagation($("#compare-bar"));
+  L.DomEvent.disableScrollPropagation($("#compare-bar"));
+
+  const handle = $("#swipe-handle");
+  L.DomEvent.disableClickPropagation(handle);
+  handle.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    handle.setPointerCapture(e.pointerId);
+    map.dragging.disable();
+    const rect = $("#map").getBoundingClientRect();
+    const move = (ev) => { S.compare.x = ev.clientX - rect.left; updateSwipe(); };
+    const up = () => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", up);
+      handle.removeEventListener("pointercancel", up);
+      map.dragging.enable();
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up);
+    handle.addEventListener("pointercancel", up);
+  });
+
+  // ------------------------------------------------------------------ metadados
+  function showInfo(def) {
+    const art = S.manifest.articles.find((a) => a.id === def.article);
+    const m = def.meta;
+    const rows = [
+      ["Arquivo original", m.file],
+      ["CRS original", m.crs],
+      ["Tipo", m.type],
+      ["Resolução original", m.native_res],
+      def.kind === "raster" ? ["Resolução na web", `≈ ${fmt(def.web_res_m * Math.cos(-23.7 * Math.PI / 180), 0)} m (Web Mercator)`] : ["Feições", fmt(m.features, 0)],
+      ["Fonte", m.source],
+      ["Download na web", def.size_kb >= 1024 ? `${fmt(def.size_kb / 1024, 1)} MB` : `${def.size_kb} KB`],
+    ];
+    $("#modal-card").innerHTML = `
+      <div class="m-head">
+        <div><h3>${esc(def.name)}</h3><p>${esc(m.description)}</p></div>
+        <button class="icon-btn" id="modal-close" aria-label="Fechar">${ICON.close}</button>
+      </div>
+      <dl>${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+      <p style="margin-top:12px;font-size:11.5px;color:#64748B">${esc(art.citation)}</p>`;
+    $("#modal").classList.add("on");
+    $("#modal-close").focus();
+    $("#modal-close").addEventListener("click", closeInfo);
+  }
+  function closeInfo() { $("#modal").classList.remove("on"); }
+  $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeInfo(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeInfo(); });
+
+  // ------------------------------------------------------------------ painel
+  $("#close-panel").addEventListener("click", () => { $("#app").classList.add("collapsed"); map.invalidateSize(); });
+  $("#open-panel").addEventListener("click", () => { $("#app").classList.remove("collapsed"); map.invalidateSize(); });
+  if (window.innerWidth <= 760) $("#app").classList.add("collapsed");
+
+  $("#btn-clear").addEventListener("click", () => {
+    if (S.compare) stopCompare();
+    Object.keys(S.layers).filter((id) => S.layers[id].active).forEach((id) => setActive(id, false));
+    map.closePopup();
+  });
+
+  // ------------------------------------------------------------------ início
+  (async function init() {
+    try {
+      const { base, manifest } = await resolveBase();
+      S.base = base;
+      S.manifest = manifest;
+    } catch (err) {
+      $("#fatal-msg").innerHTML = `<b>Não foi possível carregar os dados do WebSIG.</b><br>
+        Confira se <code>.streamlit/config.toml</code> tem <code>enableStaticServing = true</code>
+        e se a pasta <code>static/websig</code> foi gerada com <code>python tools/build_websig.py</code>.`;
+      $("#fatal").classList.add("on");
+      $("#panel-foot").textContent = "Dados indisponíveis.";
+      return;
+    }
+    const layers = S.manifest.layers;
+    Object.values(layers).forEach((def) => {
+      S.layers[def.id] = { active: false, ready: false, loading: false, opacity: def.kind === "raster" ? 0.9 : 1, order: 0 };
+    });
+    buildTree();
+    fillCompareSelects();
+
+    const art = S.manifest.articles[0];
+    S.homeBounds = L.latLngBounds(layers[art.home_layer].bounds);
+    fitHome();
+
+    const totalMb = Object.values(layers).reduce((acc, l) => acc + l.size_kb, 0) / 1024;
+    const [datePart] = S.manifest.generated.split("T");
+    const [y, mo, d] = datePart.split("-");
+    $("#panel-foot").textContent = `${Object.keys(layers).length} camadas · ${fmt(totalMb, 1)} MB sob demanda · dados gerados em ${d}/${mo}/${y}`;
+
+    for (const id of art.defaults) await setActive(id, true);
+  })();
+})();
+</script>
+</body>
+</html>

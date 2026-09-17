@@ -1,0 +1,12 @@
+# Dados brutos pesados: o app publica apenas static/websig/, gerado por tools/build_websig.py
+SHAPEFILES_APA_ITUPARARANGA/
+
+# Backups locais e atalhos do Google Drive
+backups_antigos/
+*.zip
+*.gdoc
+
+__pycache__/
+
+# Worktrees e configuração local do Claude Code
+.claude/

@@ -1,0 +1,8 @@
+# Dependências apenas para gerar static/websig/ (não são necessárias para rodar o app)
+geopandas>=1.0
+rasterio>=1.4
+pyproj>=3.6
+shapely>=2.0
+numpy
+pandas
+Pillow
