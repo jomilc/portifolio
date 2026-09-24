@@ -1,0 +1,21 @@
+# Ambientes virtuais
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Streamlit secrets e configs locais
+.streamlit/secrets.toml
+
+# Backups e temporários
+backups_antigos/
+*.bak
+*.tmp
+*.orig
