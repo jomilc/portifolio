@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ilustração de vistoria ambiental: prancheta de laudo, marco de divisa e fragmento florestal">
+  <defs>
+    <filter id="lc-rough" x="-12%" y="-12%" width="124%" height="124%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.032" numOctaves="3" seed="17" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="lc-grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <pattern id="lc-hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#15803D" stroke-width="1.1" opacity="0.5"/>
+    </pattern>
+    <pattern id="lc-soil" width="10" height="10" patternTransform="rotate(-40)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#92400E" stroke-width="1" opacity="0.35"/>
+    </pattern>
+  </defs>
+
+  <rect width="400" height="300" fill="#F7FAF5"/>
+  <rect width="400" height="300" filter="url(#lc-grain)" opacity="0.07"/>
+
+  <g filter="url(#lc-rough)" fill="none" stroke="#14532D" stroke-linecap="round" stroke-linejoin="round">
+    <!-- fragmento florestal ao fundo -->
+    <g stroke-width="2" opacity="0.85">
+      <path d="M40 176 C 44 148, 66 136, 84 148 C 104 132, 128 146, 126 168 C 142 168, 148 186, 132 194 L 52 196 C 36 192, 32 180, 40 176 z" fill="url(#lc-hatch)"/>
+      <path d="M262 168 C 268 142, 292 132, 308 146 C 328 134, 350 150, 344 170 C 358 176, 352 192, 338 192 L 272 192 C 258 188, 256 174, 262 168 z" fill="url(#lc-hatch)"/>
+    </g>
+    <g stroke-width="1.8" opacity="0.7">
+      <path d="M84 196 l0 -22 M84 184 l-8 -8 M84 188 l8 -7"/>
+      <path d="M308 192 l0 -20 M308 182 l-7 -7 M308 186 l7 -6"/>
+    </g>
+
+    <!-- árvore em primeiro plano, à direita -->
+    <g stroke-width="2.4">
+      <path d="M300 258 C 298 230, 300 214, 304 200" stroke-width="3"/>
+      <path d="M302 226 l -14 -12 M303 214 l 12 -10"/>
+      <path d="M276 196 C 276 166, 306 152, 326 166 C 348 160, 362 182, 348 198 C 352 214, 330 224, 312 216 C 292 220, 272 210, 276 196 z" fill="#ECFDF5"/>
+      <g stroke-width="1.2" opacity="0.7">
+        <path d="M292 186 C 302 178, 316 176, 328 182"/>
+        <path d="M296 202 C 308 194, 324 194, 336 200"/>
+      </g>
+    </g>
+
+    <!-- linha do terreno -->
+    <path d="M8 258 C 90 250, 160 254, 220 250 C 280 246, 340 252, 394 248" stroke-width="2.6"/>
+    <rect x="8" y="258" width="386" height="34" fill="url(#lc-soil)" stroke="none"/>
+
+    <!-- marco de divisa -->
+    <g stroke-width="2.4">
+      <path d="M176 252 L 176 178" stroke-width="3"/>
+      <path d="M150 156 L 214 150 L 216 182 L 152 188 z" fill="#FFFFFF"/>
+      <g stroke-width="1.4" opacity="0.85">
+        <path d="M160 166 l 42 -4 M160 174 l 30 -3"/>
+      </g>
+      <path d="M166 252 l 20 0" stroke-width="2"/>
+    </g>
+
+    <!-- prancheta de laudo -->
+    <g stroke-width="2.4">
+      <path d="M40 210 L 130 204 L 140 288 L 50 294 z" fill="#FFFFFF"/>
+      <path d="M72 200 L 104 198 L 106 212 L 74 214 z" fill="#ECFDF5" stroke-width="2"/>
+      <!-- itens do laudo -->
+      <g stroke-width="1.5" opacity="0.9">
+        <path d="M56 232 l 62 -4 M56 246 l 62 -4 M58 260 l 48 -3 M58 274 l 48 -3"/>
+      </g>
+      <g stroke="#15803D" stroke-width="2.2">
+        <path d="M60 228 l 5 5 l 9 -11"/>
+        <path d="M60 242 l 5 5 l 9 -11"/>
+        <path d="M62 256 l 5 5 l 9 -11"/>
+      </g>
+    </g>
+
+    <!-- trena entre a mata e o marco -->
+    <g stroke-width="1.6" stroke-dasharray="7 6" opacity="0.9">
+      <path d="M176 232 L 268 226"/>
+      <path d="M176 226 l0 12 M268 220 l0 12"/>
+    </g>
+  </g>
+</svg>

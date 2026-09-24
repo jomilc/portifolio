@@ -1,9 +1,12 @@
 import streamlit as st
 import json
+import re
 import os
 import base64
 import pandas as pd
 import streamlit.components.v1 as components
+
+from artigos_data import ARTIGOS, ARTIGOS_POR_ID
 
 st.set_page_config(
     page_title="Dr. Jomil Costa Abreu Sales | Biólogo & Consultoria Ambiental",
@@ -520,8 +523,52 @@ def get_websig_manifest():
         return None
     return json.loads(read_text_file(path, os.path.getmtime(path)))
 
+def get_arte_cartao(base):
+    """Arte do cartão de atuação.
+
+    Usa a imagem salva em static/ilustracoes/ (servida pelo Streamlit, sem
+    embutir em base64). Sem imagem, cai no desenho SVG de ilustracoes/.
+    """
+    raiz = os.path.dirname(os.path.abspath(__file__))
+    for ext in ("png", "jpg", "jpeg", "webp"):
+        arquivo = os.path.join(raiz, "static", "ilustracoes", f"{base}.{ext}")
+        if os.path.exists(arquivo):
+            versao = int(os.path.getmtime(arquivo))
+            return f'<img class="arte" src="app/static/ilustracoes/{base}.{ext}?v={versao}" alt="" />', True
+    desenho = os.path.join(raiz, "ilustracoes", f"{base}.svg")
+    if os.path.exists(desenho):
+        return read_text_file(desenho, os.path.getmtime(desenho)), False
+    return "", False
+
 def get_websig_map_html():
     return read_text_file(WEBSIG_MAP_TEMPLATE, os.path.getmtime(WEBSIG_MAP_TEMPLATE))
+
+def html_block(html):
+    """Renderiza um bloco HTML com segurança.
+
+    No Markdown, uma linha em branco encerra o bloco HTML e faz o restante
+    indentado virar bloco de código — que aparecia como script na página.
+    """
+    st.markdown("\n".join(line.strip() for line in html.strip().splitlines() if line.strip()),
+                unsafe_allow_html=True)
+
+def inline_md(text):
+    """Converte a marcação inline dos textos dos artigos (**negrito**) para HTML."""
+    text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+    text = re.sub(r"`(.+?)`", r"<code>\1</code>", text)
+    return text
+
+@st.cache_data
+def get_article_figure_b64(pasta, arquivo):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    for candidate in (os.path.join(current_dir, pasta, arquivo), os.path.join(current_dir, arquivo)):
+        if os.path.exists(candidate):
+            try:
+                with open(candidate, "rb") as f:
+                    return base64.b64encode(f.read()).decode("utf-8")
+            except OSError:
+                pass
+    return None
 
 photo_b64 = get_profile_photo_b64()
 
@@ -1086,698 +1133,260 @@ if selected_section == "Página Inicial":
 
 
 elif selected_section in ["Artigos Científicos & Publicações", "Produção Científica & Interativa", "Artigos Científicos"]:
-    st.markdown("""
+    html_block("""
     <div style="background-color: #FFFFFF; border: 1px solid #CBD5E1; border-left: 6px solid #15803D; border-radius: 10px; padding: 1.3rem 1.6rem; margin-bottom: 1.2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.03);">
         <h2 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0 0 0.3rem 0; font-size: 1.65rem;">
-            📚 Artigos Científicos & Dossiês de Pesquisa
+            📚 Artigos Científicos &amp; Dossiês de Pesquisa
         </h2>
         <p style="font-size: 0.96rem; color: #475569; margin: 0; line-height: 1.5;">
-            Conheça abaixo as pesquisas e publicações científicas de ponta, estruturadas sob a ótica executiva de <b>Pergunta Central, Problema & Hipótese, Resultados Obtidos e Soluções Propostas</b>, com navegação pelos produtos cartográficos e analíticos de cada estudo.
+            Conheça abaixo as pesquisas e publicações científicas, estruturadas sob a ótica executiva de <b>Pergunta Central, Problema &amp; Hipótese, Resultados Obtidos e Soluções Propostas</b>, com navegação pelas figuras originais de cada estudo.
         </p>
     </div>
-    """, unsafe_allow_html=True)
-
-    articles_list = [
-        (1, "Artigo 1 • [Preprint 2024 - Destaque Principal] APA Itupararanga: Fluxo de CO2 & Sentinel-2", "✅ Modelo Padrão Ativo"),
-        (2, "Artigo 2 • [Artigo 2025/2026] Avaliação do IVEG e OWA para Política Fiscal Ambiental em SP", "⏳ Aguardando Figuras"),
-        (3, "Artigo 3 • [Artigo 2023] Temperatura da Superfície (LST) e Conflito de Outorga (Paracatu/MG)", "⏳ Aguardando Figuras"),
-        (4, "Artigo 4 • [Artigo 2022] Geoestatística e Demografia da Cobertura do Solo (Bacia do Rio Una)", "⏳ Aguardando Figuras"),
-        (5, "Artigo 5 • [Artigo 2022] Sustentabilidade Ambiental via WRSI e AHP Multicritério", "⏳ Aguardando Figuras"),
-        (6, "Artigo 6 • [Artigo 2022] Expansão Humana e Qualidade da Água (Fósforo Total)", "⏳ Aguardando Figuras")
-    ]
+    """)
 
     if "selected_article_id" not in st.session_state:
         st.session_state.selected_article_id = 1
 
-    # Seletor Executivo de Artigos em Cartões
-    st.markdown("<p style='font-size: 0.82rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.4rem;'>Selecione a Publicação para Visualizar o Dossiê & Produtos Cartográficos:</p>", unsafe_allow_html=True)
-    
-    art_cols = st.columns(3)
-    for idx_a, (a_id, a_title, a_badge) in enumerate(articles_list):
-        col_target = art_cols[idx_a % 3]
-        with col_target:
-            is_active = (a_id == st.session_state.selected_article_id)
-            border_col = "#15803D" if is_active else "#E2E8F0"
-            bg_col = "#F0FDF4" if is_active else "#FFFFFF"
-            badge_color = "#15803D" if "Modelo Padrão" in a_badge else "#D97706"
-            badge_bg = "#DCFCE7" if "Modelo Padrão" in a_badge else "#FEF3C7"
-            short_art_title = a_title.split("•")[1].strip() if "•" in a_title else a_title
-            
-            st.markdown(f"""
-            <div style="border: 2px solid {border_col}; background: {bg_col}; border-radius: 8px; padding: 0.65rem 0.8rem; margin-bottom: 0.4rem; min-height: 82px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
-                    <span style="font-size: 0.72rem; font-weight: 800; color: {badge_color}; background: {badge_bg}; padding: 0.15rem 0.45rem; border-radius: 4px;">{a_badge}</span>
-                    <span style="font-size: 0.72rem; color: #64748B; font-weight: 700;">#{a_id}</span>
-                </div>
-                <div style="font-size: 0.82rem; font-weight: 700; color: #0F172A; line-height: 1.3;">{short_art_title}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            btn_label = f"Visualizar #{a_id}" + (" (Ativo)" if is_active else "")
-            if st.button(btn_label, key=f"sel_art_btn_{a_id}", use_container_width=True, type="primary" if is_active else "secondary"):
-                st.session_state.selected_article_id = a_id
-                st.session_state.chat_history = []
-                st.rerun()
+    st.markdown("<p style='font-size: 0.82rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.4rem;'>Selecione a publicação para visualizar o dossiê &amp; as figuras do estudo:</p>", unsafe_allow_html=True)
 
-    curr_art_id = st.session_state.selected_article_id
-
-    # =========================================================================
-    # ARTIGO 1: PREPRINT 2024 (APA ITUPARARANGA) — FORMATO PADRÃO APROVADO
-    # =========================================================================
-    if curr_art_id == 1:
-        # Cabeçalho Oficial do Artigo
-        st.markdown("""
-        <div style="background-color: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 1.4rem 1.6rem; margin: 1rem 0 1.2rem 0; box-shadow: 0 3px 8px rgba(0,0,0,0.03);">
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.5rem;">
-                <span class="badge badge-green">Preprint 2024 • Pós-Revisão por Pares</span>
-                <span class="badge badge-blue">APA de Itupararanga (938,31 km²)</span>
-                <span class="badge badge-amber">Sentinel-2 L2A (10 m) & MOLUSCE</span>
-                <span class="badge badge-gray">Validação MODIS GPP (500 m)</span>
-                <span class="badge badge-gray">FAPESP Proc. 2024/14444-2</span>
-            </div>
-            <h3 style="font-family: 'Merriweather', serif; color: #0F172A; font-size: 1.35rem; margin: 0.3rem 0 0.6rem 0; line-height: 1.35;">
-                Carbon Flux Potential Prediction Model Based on Land Cover and Land Use: Application in the Itupararanga Environmental Protection Area, SP, Brazil
-            </h3>
-            <p style="font-size: 0.88rem; color: #475569; margin-bottom: 0.4rem; line-height: 1.5;">
-                <b>Autores:</b> Jomil Costa Abreu Sales (Autor Correspondente - ESALQ/USP), Nícholas de Paula Nicomedes (UNESP), Darllan Collins da Cunha e Silva (UNESP), Roberto Wagner Lourenço (UNESP)<br>
-                <b>Status:</b> Versão Final Ajustada Pós-Revisão por Pares • <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7268395" target="_blank" style="color: #D97706; font-weight: 700; text-decoration: underline;">Acessar Preprint no SSRN (Abstract ID 7268395)</a> <i>(em fase final de publicação, sem DOI definitivo ainda)</i>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # ---------------------------------------------------------------------
-        # O PONTO PRINCIPAL DO ARTIGO — OS 4 PILARES DA INVESTIGAÇÃO CIENTÍFICA
-        # ---------------------------------------------------------------------
-        st.markdown("""
-        <div style="margin: 1.3rem 0 0.7rem 0;">
-            <h4 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0 0 0.2rem 0; font-size: 1.25rem;">
-                🎯 Estrutura Fundamental da Pesquisa: Da Pergunta à Solução Territorial
-            </h4>
-            <p style="font-size: 0.9rem; color: #475569; margin: 0;">
-                Síntese executiva dos fundamentos metodológicos, empíricos e práticos que norteiam este estudo:
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        pilar_cols = st.columns(2)
-
-        with pilar_cols[0]:
-            st.markdown("""
-            <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #0284C7; border-radius: 10px; padding: 1.2rem; min-height: 260px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
-                    <span style="font-size: 1.4rem;">❓</span>
-                    <b style="font-size: 1.05rem; color: #0369A1; font-family: 'Merriweather', serif;">1. A Pergunta Central do Artigo</b>
-                </div>
-                <div style="font-size: 0.93rem; color: #0F172A; font-weight: 600; line-height: 1.5; background: #F0F9FF; padding: 0.7rem 0.9rem; border-radius: 6px; border: 1px solid #BAE6FD; margin-bottom: 0.6rem;">
-                    "A estabilidade cartográfica da cobertura florestal em Unidades de Conservação de Uso Sustentável garante, por si só, a manutenção da integridade funcional e da capacidade de sequestro de carbono desses remanescentes frente às pressões antrópicas e ao efeito de borda?"
-                </div>
-                <p style="font-size: 0.85rem; color: #334155; line-height: 1.45; margin: 0;">
-                    A investigação questiona o dogma de que florestas que não foram derrubadas continuam desempenhando seus serviços ecossistêmicos climáticos em sua plenitude funcional.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with pilar_cols[1]:
-            st.markdown("""
-            <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #D97706; border-radius: 10px; padding: 1.2rem; min-height: 260px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
-                    <span style="font-size: 1.4rem;">⚠️</span>
-                    <b style="font-size: 1.05rem; color: #B45309; font-family: 'Merriweather', serif;">2. O Problema Levantado & Hipótese</b>
-                </div>
-                <div style="font-size: 0.86rem; color: #1E293B; line-height: 1.45; margin-bottom: 0.5rem;">
-                    <b>O Problema Territorial:</b> Os órgãos ambientais e comitês de bacia monitoram o território apenas por métricas binárias (desmatamento vs. persistência). Se a árvore não foi cortada, o mapa considera a área intacta — mascarando a degradação metabólica silenciosa provocada por dessecação e efeito de borda.
-                </div>
-                <div style="font-size: 0.86rem; color: #92400E; background: #FEF3C7; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid #FDE68A; line-height: 1.4;">
-                    <b>A Hipótese Científica:</b> Remanescentes contínuos da APA sofrem degradação funcional invisível ao satélite óptico tradicional, e a combinação espectral entre eficiência fotoquímica (<code>sPRI</code>) e biomassa foliar (<code>NDVI</code>) a 10 m permite espacializar precocemente o declínio de CO2 antes de qualquer corte raso.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        pilar_cols2 = st.columns(2)
-
-        with pilar_cols2[0]:
-            st.markdown("""
-            <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #15803D; border-radius: 10px; padding: 1.2rem; min-height: 280px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
-                    <span style="font-size: 1.4rem;">📊</span>
-                    <b style="font-size: 1.05rem; color: #15803D; font-family: 'Merriweather', serif;">3. Os Resultados Obtidos (Evidências)</b>
-                </div>
-                <ul style="font-size: 0.85rem; color: #1E293B; line-height: 1.45; margin: 0 0 0.5rem 1.2rem; padding: 0;">
-                    <li><b>Desacoplamento Estrutura vs. Função:</b> A cobertura da terra manteve <b>91,8% de persistência global</b> e a floresta nativa teve <b>96,0% de estabilidade física</b> entre 2019 e 2023.</li>
-                    <li><b>Retração Drástica de Alto Carbono:</b> As áreas de Alto Potencial de Sequestro sofreram retração severa de <b>-21,5%</b> (despencando de 200,83 km² para 157,72 km² — perda líquida de 43,11 km²).</li>
-                    <li><b>O Achado Chave (95,7%):</b> <b>95,7% (65,66 km²) de toda a perda funcional ocorreu DENTRO de matas que NÃO sofreram desmatamento</b>.</li>
-                    <li><b>Efeito de Borda Comprovado:</b> Queda funcional de <b>46,4% a até 20 m da borda</b> florestal, contra <b>35,0% além de 200 m</b> do interior.</li>
-                    <li><b>Validação Orbital Robusta:</b> Forte aderência com MODIS GPP (500 m) (Pearson r = 0,705 / 0,662; Spearman rho = 0,743 / 0,748; p < 0,001).</li>
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with pilar_cols2[1]:
-            st.markdown("""
-            <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #0D9488; border-radius: 10px; padding: 1.2rem; min-height: 280px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
-                    <span style="font-size: 1.4rem;">💡</span>
-                    <b style="font-size: 1.05rem; color: #0F766E; font-family: 'Merriweather', serif;">4. A Solução para o Problema</b>
-                </div>
-                <div style="font-size: 0.85rem; color: #1E293B; line-height: 1.45;">
-                    <p style="margin: 0 0 0.45rem 0;"><b>1. Modernização do Monitoramento:</b> Superar o monitoramento analógico binário implementando no Plano de Manejo da APA um sistema de sensoriamento funcional contínuo a 10 m (Sentinel-2) com alertas precoces de perda de vigor fotossintético.</p>
-                    <p style="margin: 0 0 0.45rem 0;"><b>2. Ações Prioritárias em Borda e Conectividade:</b> Delimitação urgente de faixas de amortecimento de 50 m no entorno dos fragmentos mais vulneráveis nas zonas ZCRH e ZOR, com reflorestamento de borda para estancar o efeito de dessecação e restaurar corredores ecológicos.</p>
-                    <p style="margin: 0;"><b>3. Valoração Econômica & ESG Funcional:</b> Condicionar repasses fiscais (ICMS Ecológico) e certificação de projetos de créditos de carbono (REDD+) à integridade funcional efetiva medida por satélite, e não apenas à existência estática de árvores em pé.</p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        # ---------------------------------------------------------------------
-        # ---------------------------------------------------------------------
-        # PRODUTOS CARTOGRÁFICOS & ANALÍTICOS DO ARTIGO (LAYOUT REVISADO)
-        # ---------------------------------------------------------------------
-        st.markdown("""
-        <div style="margin: 1.6rem 0 0.8rem 0; border-top: 2px solid #E2E8F0; padding-top: 1.3rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                <div>
-                    <h4 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0; font-size: 1.28rem;">
-                        🗺️ Produtos Cartográficos & Analíticos do Artigo
-                    </h4>
-                    <p style="font-size: 0.88rem; color: #475569; margin: 0.3rem 0 0 0; line-height: 1.45;">
-                        Visualize abaixo os mapas, gráficos e produtos biofísicos gerados pela pesquisa. A figura ativa é exibida em alta resolução e, logo abaixo dela, utilize os botões de navegação para alternar entre os produtos e conferir o resumo analítico extraído do texto do artigo.
-                    </p>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        art1_figures = [
-    {
-        "id": 0,
-        "title": "Resumo Gráfico (Graphical Abstract)",
-        "short_title": "01 • Resumo Gráfico",
-        "file": "Image_abstract_REV.png",
-        "badge": "Síntese Metodológica Orbital",
-        "product_title": "Infográfico Científico Integrado & Síntese Metodológica",
-        "analytical_summary": "O resumo gráfico sintetiza a cadeia analítica completa desenvolvida no estudo, evidenciando o paradoxo central descoberto na APA de Itupararanga: enquanto os índices tradicionais de monitoramento apontam estabilidade estrutural quase perfeita (96,0% de persistência da cobertura florestal entre 2019 e 2023), a integração espectral de reflectância fotoquímica (sPRI) e vigor foliar ativo (NDVI) via Sentinel-2 revelou um declínio severo de 21,5% nas áreas de alto potencial de sequestro de carbono. A validação cruzada independente com dados orbitais de GPP do sensor MODIS (500 m) confirmou que 95,7% dessa perda ocorreu no interior de fragmentos que não sofreram supressão de árvores, consolidando um novo referencial para a detecção precoce de degradação florestal silenciosa em Unidades de Conservação.",
-        "territorial_implication": "Comunicação executiva de alto nível para avaliadores de periódicos internacionais (JCR Q1), gestores de Unidades de Conservação e tomadores de decisão em políticas de mitigação climática e créditos de carbono florestal.",
-        "type": "Infográfico Científico & Síntese Conceitual",
-        "sensor": "Sentinel-2 L2A (MSI 10 m) & Terra/Aqua MODIS (MOD17A2H 500 m)",
-        "res": "10 m (Sentinel-2) / 500 m (MODIS GPP)",
-        "datum": "WGS 84 / SIRGAS 2000 UTM Zona 23S"
-    },
-    {
-        "id": 1,
-        "title": "Figura 1: Área de Estudo & Zoneamento da APA",
-        "short_title": "02 • Zoneamento APA",
-        "file": "Figure_01.png",
-        "badge": "Base Cartográfica & Legal",
-        "product_title": "Mapa Oficial de Localização e Zoneamento Ambiental da APA de Itupararanga",
-        "analytical_summary": "A Área de Proteção Ambiental de Itupararanga abrange 938,31 km² no bioma Mata Atlântica, contemplando territórios de 8 municípios paulistas (Alumínio, Cotia, Ibiúna, Mairinque, Piedade, São Roque, Vargem Grande Paulista e Votorantim) e circundando a Represa de Itupararanga, manancial estratégico para abastecimento de mais de 1 milhão de habitantes. O zoneamento oficial do Plano de Manejo estratifica a unidade em 5 zonas de gestão (ZCB, ZCRH, ZOR, ZOD e ZOC). A espacialização permitiu cruzar os limites legais com os dados biofísicos de vegetação, revelando que a pressão antrópica periférica e as atividades agropecuárias exercem pressões desiguais sobre os remanescentes, sendo a Zona de Conservação de Recursos Hídricos (ZCRH) uma das mais suscetíveis à perda de eficiência ecológica.",
-        "territorial_implication": "Identificação de quais zonas legais sofrem maior pressão antrópica e direcionamento de ações fiscalizatórias e de restauração pelo Conselho Gestor da APA e comitês de bacia.",
-        "type": "Mapa Temático de Zoneamento Ambiental",
-        "sensor": "Bases Vetoriais Oficiais do Plano de Manejo (Fundação Florestal / SIMA-SP)",
-        "res": "Vetorial Cartográfico de Precisão (Escala 1:50.000)",
-        "datum": "SIRGAS 2000 UTM Zona 23S"
-    },
-    {
-        "id": 2,
-        "title": "Figura 2: Cobertura da Terra (2019 vs 2023)",
-        "short_title": "03 • Uso do Solo (LULC)",
-        "file": "Figure_02.png",
-        "badge": "Monitoramento Multitemporal",
-        "product_title": "Mapa Temático Multitemporal de Cobertura e Uso da Terra (LULC 2019 vs. 2023)",
-        "analytical_summary": "A análise comparativa do uso e cobertura do solo atesta uma paisagem com elevada inércia estrutural cartográfica: 91,8% de toda a área da APA permaneceu na mesma classe temática ao longo do quadriênio (2019 a 2023), com a classe Floresta apresentando taxa de persistência física de 96,0% (variação líquida de apenas 1,49 km² em um maciço superior a 400 km² de remanescentes). Esse resultado comprova empiricamente que o desmatamento por corte raso foi praticamente residual no período, demonstrando que, sob a ótica dos relatórios convencionais de fiscalização e licenciamento ambiental baseados apenas em mapas temáticos, a integridade da cobertura florestal da APA seria considerada plenamente preservada.",
-        "territorial_implication": "Comprovação científica de que relatórios de uso da terra e desmatamento não são suficientes para diagnosticar a perda de qualidade e vigor ecológico das florestas.",
-        "type": "Mapa de Uso e Cobertura da Terra (LULC)",
-        "sensor": "Sentinel-2 MSI (Bandas multiespectrais 10 m)",
-        "res": "10 m de resolução espacial",
-        "datum": "SIRGAS 2000 UTM Zona 23S"
-    },
-    {
-        "id": 3,
-        "title": "Figura 3: Projeção Preditiva de Uso do Solo (2028)",
-        "short_title": "04 • Projeção LULC 2028",
-        "file": "Figure_03.png",
-        "badge": "Modelagem Preditiva com IA",
-        "product_title": "Mapa Preditivo de Dinâmica da Paisagem para o Ano de 2028",
-        "analytical_summary": "A modelagem preditiva baseada em Redes Neurais Artificiais (ANN-MLP com 10.000 amostras) integrada a Autômatos Celulares e Cadeias de Markov projetou os padrões de transição espacial para o ano de 2028. Os resultados indicam continuidade do avanço de pastagens e da expansão urbana sobre áreas de transição e zonas de amortecimento ao norte e a leste da APA, intensificando a pressão antrópica nas microbacias afluentes da Represa de Itupararanga. Essa simulação oferece um instrumento preventivo para subsidiar planos de contingência territorial antes que as alterações físicas se consolidem no solo.",
-        "territorial_implication": "Subsídio antecipado para o Comitê de Bacia Hidrográfica do Rio Sorocaba e Médio Tietê (CBH-SMT) e prefeituras consorciadas estabelecerem barreiras legais e diretrizes de zoneamento restritivo.",
-        "type": "Cenário Preditivo de Dinâmica da Paisagem",
-        "sensor": "Modelagem Computacional Espacial (Redes Neurais + Markov)",
-        "res": "10 m de resolução espacial",
-        "datum": "SIRGAS 2000 UTM Zona 23S"
-    },
-    {
-        "id": 4,
-        "title": "Figura 4: Balanço Quantitativo de Transição de Áreas (km²)",
-        "short_title": "05 • Balanço de Áreas",
-        "file": "Figure_04s.png",
-        "badge": "Estatística Espacial",
-        "product_title": "Gráfico Comparativo de Balanço de Transição Temática (2019 - 2023 - 2028)",
-        "analytical_summary": "A tabulação cruzada das matrizes de transição quantifica em detalhe o comportamento de cada classe territorial em quilômetros quadrados e porcentagem relativa. Os dados comprovam matematicamente que a conversão física direta de áreas florestais para pastagem, agricultura ou urbanização representou apenas 4,3% de toda a dinâmica observada na paisagem. Essa quantificação foi fundamental para isolar a variável 'supressão vegetal' e provar com rigor estatístico que as alterações biofísicas observadas na APA não decorreram da derrubada de árvores, mas de estresses fisiológicos internos da própria vegetação nativa mantida.",
-        "territorial_implication": "Suporte estatístico robusto para auditorias ambientais, laudos periciais e comprovação de integridade estrutural das florestas em processos judiciais e de licenciamento.",
-        "type": "Gráfico Estatístico de Balanço Territorial",
-        "sensor": "Estatísticas Espaciais Tabulares Cruzadas",
-        "res": "Métricas quantitativas em km² e porcentagem (%)",
-        "datum": "N/A"
-    },
-    {
-        "id": 5,
-        "title": "Figura 5: Classes de Potencial de Fluxo de CO2 (2019 vs 2023)",
-        "short_title": "06 • Classes Fluxo CO2",
-        "file": "Figure_05.png",
-        "badge": "Inovação Biofísica Central",
-        "product_title": "Mapa de Classes do Proxy de Potencial de Fluxo de CO2 (sPRI × NDVI)",
-        "analytical_summary": "O mapa biofísico de fluxo de CO2 constitui a principal evidência empírica da pesquisa. Ao estratificar o território em 5 classes de potencial (Antrópica, Baixo, Moderado, Alto e Muito Alto) com base na combinação entre eficiência do uso da luz (sPRI) e biomassa foliar (NDVI) a 10 m de resolução, revelou-se uma retração alarmante de -21,5% da classe de Alto Potencial (de 200,83 km² em 2019 para 157,72 km² em 2023 — uma perda de 43,11 km²). O mapa evidencia a fragmentação interna das manchas de alta eficiência fotossintética, provando que maciços aparentemente densos sofreram declínio substancial na sua capacidade de fixação de carbono.",
-        "territorial_implication": "Instrumento cartográfico inovador para direcionamento de projetos de créditos de carbono (REDD+), delimitando com precisão submétrica onde a floresta perdeu vigor funcional e necessita de manejo.",
-        "type": "Mapa Biofísico de Potencial de Sequestro de Carbono",
-        "sensor": "Sentinel-2 L2A (Bandas B02, B03, B04, B08)",
-        "res": "10 m de resolução espacial",
-        "datum": "SIRGAS 2000 UTM Zona 23S"
-    },
-    {
-        "id": 6,
-        "title": "Figura 6: Projeção de Fluxo de CO2 para 2028",
-        "short_title": "07 • Projeção Carbono 2028",
-        "file": "Figure_06.png",
-        "badge": "Projeção de Saúde Funcional",
-        "product_title": "Mapa Preditivo do Potencial de Sequestro de CO2 para o Horizonte de 2028",
-        "analytical_summary": "Aplicando a modelagem markoviana diretamente sobre as classes biofísicas de carbono, o cenário simulado para 2028 alerta para a continuidade do declínio funcional na APA: as áreas de alto potencial de fixação de CO2 recuam para 145,21 km², ao passo que as classes de moderado e baixo potencial expandem-se proporcionalmente. Este produto espacial demonstra que, na ausência de intervenções ativas de restauração ecológica e proteção contra o efeito de borda, a degradação funcional continuará se alastrando pelo interior dos maciços, comprometendo as metas climáticas regionais.",
-        "territorial_implication": "Alerta preventivo para órgãos ambientais e base para elaboração de metas de mitigação climática no Plano de Manejo e políticas estaduais de enfrentamento às mudanças climáticas.",
-        "type": "Cenário Preditivo Biofísico de Carbono",
-        "sensor": "Modelagem Computacional Espacial (Markov e Autômatos Celulares)",
-        "res": "10 m de resolução espacial",
-        "datum": "SIRGAS 2000 UTM Zona 23S"
-    },
-    {
-        "id": 7,
-        "title": "Figura 7: Evolução Temporal das Classes de Alto Carbono (km²)",
-        "short_title": "08 • Queda de Alto CO2",
-        "file": "Figure_07.png",
-        "badge": "Quantificação do Paradoxo",
-        "product_title": "Gráfico de Dinâmica e Migração entre Classes de Potencial de Carbono",
-        "analytical_summary": "O gráfico de transição entre classes comprova a origem da perda de alto potencial de carbono: dos 88,10 km² que deixaram as classes superiores de sequestro no período, impressionantes 95,7% (65,66 km²) permaneceram classificados como floresta nativa pelo monitoramento tradicional de uso da terra, sofrendo apenas uma transição interna para a classe de potencial moderado. Apenas 4,3% (2,96 km²) da perda decorreu de conversão física da terra para usos antrópicos. Essa métrica estabelece com precisão matemática a existência da degradação florestal oculta em Unidades de Conservação.",
-        "territorial_implication": "Comprovação matemática irrefutável do fenômeno da degradação funcional para relatórios de auditoria científica e formulação de novos indicadores de integridade ecológica.",
-        "type": "Gráfico de Transição Funcional de Carbono",
-        "sensor": "Estatísticas Espaciais Cruzadas",
-        "res": "Métricas em km² por classe",
-        "datum": "N/A"
-    },
-    {
-        "id": 8,
-        "title": "Figura 8: Produtividade Primária Bruta (MODIS GPP 500m)",
-        "short_title": "09 • GPP MODIS 500m",
-        "file": "Figure_08.png",
-        "badge": "Verdade Terrestre Orbital",
-        "product_title": "Mapa Regional de Produtividade Primária Bruta (MODIS GPP MOD17A2H)",
-        "analytical_summary": "O produto orbital de Produtividade Primária Bruta (GPP MOD17A2H da NASA, 500 m de resolução), processado em nuvem no Google Earth Engine para a estação seca de inverno austral, mapeou o acúmulo sazonal de carbono vegetal (variando entre 0,017 e 0,061 kg C m⁻² season⁻¹). Ele serviu como verdade terrestre orbital e referência biofísica independente e consagrada pela comunidade científica internacional para averiguar se a retração espectral registrada pelo sensor Sentinel-2 refletia uma alteração biofísica real na taxa de fotossíntese e na produtividade dos ecossistemas da APA.",
-        "territorial_implication": "Calibração e validação cruzada regional de modelos biofísicos de ecologia da paisagem com dados oficiais da NASA.",
-        "type": "Mapa de Produtividade Vegetal Orbital Independente",
-        "sensor": "MODIS Terra/Aqua (Produto MOD17A2H v006)",
-        "res": "500 m de resolução espacial",
-        "datum": "WGS 84 / Sinusoidal reprojetado para SIRGAS 2000 UTM Zona 23S"
-    },
-    {
-        "id": 9,
-        "title": "Figura 9: Validação Cruzada & Regressão Linear Estatística",
-        "short_title": "10 • Validação Estatística",
-        "file": "Figure_09.png",
-        "badge": "Rigor & Validação Estatística",
-        "product_title": "Gráficos de Dispersão, Ajuste Linear e Significância Estatística",
-        "analytical_summary": "A validação cruzada independente demonstrou forte consistência estatística e biofísica entre o proxy de fluxo de CO2 (sPRI × NDVI, 10 m) e os dados de Produtividade Primária Bruta (MODIS GPP, 500 m) para mais de 3.600 pixels vegetativos homogêneos (pureza vegetal >= 70%). Os coeficientes de Pearson (r = 0,705 em 2019 e r = 0,662 em 2023) e Spearman (rho = 0,743 em 2019 e rho = 0,748 em 2023), todos com significância estatística p < 0,001, atestam que a formulação espectral reflete com precisão os processos biofísicos de fixação de carbono, validando o método para subsidiar políticas públicas de conservação e projetos de créditos de carbono.",
-        "territorial_implication": "Garantia de conformidade científica para submissão do manuscrito a periódicos indexados de alto impacto (JCR Q1) e chancela metodológica perante órgãos certificadores de carbono.",
-        "type": "Gráficos de Dispersão e Correlação Biofísica",
-        "sensor": "Sentinel-2 (10 m) vs. MODIS GPP (500 m)",
-        "res": "Amostragem agregada de pixels puros (50x50 Sentinel por pixel MODIS)",
-        "datum": "N/A"
+    STATUS_CORES = {
+        "destaque": ("#15803D", "#DCFCE7", "#BBF7D0"),
+        "publicado": ("#0369A1", "#E0F2FE", "#BAE6FD"),
+        "submissao": ("#B45309", "#FEF3C7", "#FDE68A"),
     }
-]
 
-        if "art1_fig_index" not in st.session_state:
-            st.session_state.art1_fig_index = 0
-
-        current_idx = max(0, min(st.session_state.art1_fig_index, len(art1_figures) - 1))
-        cur_fig = art1_figures[current_idx]
-
-        # =====================================================================
-        # 1. IMAGEM EM ALTA DEFINIÇÃO (EXIBIDA PRIMEIRO, NO TOPO)
-        # =====================================================================
-        fig_b64 = get_figure_image_b64(cur_fig["file"])
-        if fig_b64:
-            st.markdown(f'''
-            <div style="background-color: #0F172A; border: 3px solid #1E293B; border-radius: 12px; padding: 1rem; text-align: center; margin: 0.9rem 0 0.6rem 0; box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; padding: 0 0.5rem;">
-                    <span style="color: #94A3B8; font-size: 0.8rem; font-weight: 600;">Produto #{current_idx + 1:02d} • {cur_fig["badge"]}</span>
-                    <span style="color: #38BDF8; font-size: 0.78rem; font-family: monospace;">Arquivo: {cur_fig["file"]}</span>
+    art_cols = st.columns(3)
+    for idx_a, artigo_card in enumerate(ARTIGOS):
+        with art_cols[idx_a % 3]:
+            is_active = (artigo_card["id"] == st.session_state.selected_article_id)
+            cor_txt, cor_bg, cor_bd = STATUS_CORES[artigo_card["status"]]
+            borda = "#15803D" if is_active else "#E2E8F0"
+            fundo = "#F0FDF4" if is_active else "#FFFFFF"
+            html_block(f"""
+            <div style="border: 2px solid {borda}; background: {fundo}; border-radius: 12px; padding: 1rem 1.1rem; margin-bottom: 0.45rem; height: 236px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                        <span style="font-size: 0.72rem; font-weight: 800; color: {cor_txt}; background: {cor_bg}; border: 1px solid {cor_bd}; padding: 0.18rem 0.5rem; border-radius: 5px; white-space: nowrap;">{artigo_card["status_label"]}</span>
+                        <span style="font-size: 0.78rem; color: #94A3B8; font-weight: 800;">#{artigo_card["id"]}</span>
+                    </div>
+                    <div style="font-size: 0.74rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.75rem; line-height: 1.35;">{artigo_card["tema"]}</div>
+                    <div style="font-size: 0.78rem; color: #475569; margin-top: 0.4rem; line-height: 1.4;">{len(artigo_card["figuras"])} figura(s) · {len(artigo_card["perguntas"])} perguntas</div>
                 </div>
-                <img src="data:image/png;base64,{fig_b64}" style="width: 100%; max-width: 1100px; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,0.4);" />
+                <div style="border-top: 1px solid #E2E8F0; padding-top: 0.6rem;">
+                    <div style="font-family: 'Merriweather', serif; font-size: 0.9rem; font-weight: 700; color: #0F172A; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{artigo_card["titulo"]}</div>
+                    <div style="font-size: 0.76rem; color: #64748B; margin-top: 0.35rem; line-height: 1.35;">{artigo_card["veiculo"]} · <b>{artigo_card["ano"]}</b></div>
+                </div>
             </div>
-            ''', unsafe_allow_html=True)
-        else:
-            st.markdown(f'''
-            <div style="background-color: #F8FAFC; border: 2px dashed #94A3B8; border-radius: 10px; padding: 2rem 1.2rem; text-align: center; margin: 0.9rem 0 0.6rem 0;">
-                <div style="font-size: 2.2rem; margin-bottom: 0.3rem;">🖼️</div>
-                <b style="color: #0F172A; font-size: 1.05rem;">{cur_fig["title"]}</b>
-                <p style="font-size: 0.86rem; color: #64748B; margin: 0.3rem 0 0.6rem 0;">
-                    O arquivo <code>{cur_fig["file"]}</code> está sincronizado com a sua pasta de trabalho no Google Drive.
-                </p>
-            </div>
-            ''', unsafe_allow_html=True)
-
-        # =====================================================================
-        # 2. CONTROLES DE NAVEGAÇÃO (LOGO ABAIXO DA FIGURA)
-        # =====================================================================
-        nav_col1, nav_col2, nav_col3 = st.columns([1.2, 3.6, 1.2])
-
-        with nav_col1:
-            if st.button("◀ Figura Anterior", key="btn_prev_fig", use_container_width=True):
-                st.session_state.art1_fig_index = (current_idx - 1) % len(art1_figures)
+            """)
+            btn_label = f"Visualizar #{artigo_card['id']}" + (" (Ativo)" if is_active else "")
+            if st.button(btn_label, key=f"sel_art_btn_{artigo_card['id']}", use_container_width=True, type="primary" if is_active else "secondary"):
+                st.session_state.selected_article_id = artigo_card["id"]
                 st.rerun()
 
-        with nav_col2:
-            st.markdown(f"""
-            <div style="text-align: center; background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
-                <span style="font-size: 0.88rem; font-weight: 800; color: #15803D;">Produto {current_idx + 1} de {len(art1_figures)}</span>
-                <span style="font-size: 0.84rem; color: #475569; margin-left: 6px;">• {cur_fig["title"]}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with nav_col3:
-            if st.button("Próxima Figura ▶", key="btn_next_fig", use_container_width=True, type="primary"):
-                st.session_state.art1_fig_index = (current_idx + 1) % len(art1_figures)
-                st.rerun()
-
-        # Fita de Botões Numerados para Seleção Rápida
-        st.markdown("<p style='font-size: 0.74rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin: 0.5rem 0 0.3rem 0;'>Seleção Rápida de Produtos (Clique no número para alternar):</p>", unsafe_allow_html=True)
-        film_cols = st.columns(len(art1_figures))
-        for f_idx, f_item in enumerate(art1_figures):
-            with film_cols[f_idx]:
-                is_selected_frame = (f_idx == current_idx)
-                f_btn_type = "primary" if is_selected_frame else "secondary"
-                if st.button(f"{f_idx+1:02d}", key=f"film_frame_{f_idx}", use_container_width=True, type=f_btn_type, help=f_item["title"]):
-                    st.session_state.art1_fig_index = f_idx
-                    st.rerun()
-
-        # =====================================================================
-        # =====================================================================
-        # 3. DESCRIÇÃO DA FIGURA & COMENTÁRIOS DO PRODUTO (SEM CÓDIGOS DE SCRIPTS)
-        # =====================================================================
-        p_summary = cur_fig["analytical_summary"]
-        p_title = cur_fig["product_title"]
-        p_badge = cur_fig["badge"]
-        
-        st.markdown(f'''
-        <div style="background-color: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 1.3rem 1.5rem; margin: 1rem 0 1.4rem 0; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 0.6rem; margin-bottom: 0.9rem;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.25rem;">📦</span>
-                    <b style="font-size: 1.05rem; color: #0F172A;">Produto da Pesquisa: {p_title}</b>
-                </div>
-                <span style="font-size: 0.76rem; font-weight: 700; color: #15803D; background: #DCFCE7; padding: 0.2rem 0.6rem; border-radius: 4px;">{p_badge}</span>
-            </div>
-            
-            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-left: 4px solid #15803D; padding: 1rem 1.2rem; border-radius: 6px;">
-                <b style="color: #166534; font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.5px;">Comentários & Análise da Figura:</b>
-                <p style="color: #1E293B; font-size: 0.93rem; line-height: 1.6; margin: 0.45rem 0 0 0;">
-                    {p_summary}
-                </p>
-            </div>
-        </div>
-        ''', unsafe_allow_html=True)
-
-    # =========================================================================
-    # ARTIGOS 2 A 6: AGUARDANDO FIGURAS PARA APLICAÇÃO DO NOVO FORMATO PADRÃO
-    # =========================================================================
-    else:
-        arts_info = {
-            2: {
-                "title": "Evaluation of the Native Vegetation Index (IVEG) Using Ordered Weighted Averaging (OWA) for Environmental Fiscal Policy in São Paulo",
-                "badge": "2025/2026 • SSAFR 2026 (San Sebastián) / Em Submissão",
-                "authors": "Jomil Costa Abreu Sales, colaboradores ESALQ/USP",
-                "desc": "Avaliação dos impactos do Índice de Vegetação Nativa (IVEG) na redistribuição do ICMS Ecológico em 645 municípios de São Paulo utilizando operadores OWA (Ordered Weighted Averaging) para modelar diferentes atitudes de tomada de decisão (aversão ao risco vs. compensação).",
-                "folder": "artigos_midia/artigo_02_iveg_owa/",
-                "maps": [
-                    {
-                        "title": "Mapa de Distribuição do IVEG e ICMS Ecológico nos Municípios de SP",
-                        "type": "Mapa Coroplético Estadual",
-                        "sensor": "Base Vetorial SEADE / Fundação Florestal / Cetesb",
-                        "res": "Malha municipal (645 municípios paulistas)",
-                        "datum": "SIRGAS 2000",
-                        "expected_file": "figura_01_iveg_sp.png"
-                    }
-                ]
-            },
-            3: {
-                "title": "The Influence of Land Use and Land Cover on Surface Temperature in a Water Catchment Sub-Basin",
-                "badge": "2023 • Sociedade & Natureza (v. 35, e69161)",
-                "authors": "Jomil Costa Abreu Sales, Roberto Wagner Lourenço, et al.",
-                "desc": "Análise da dinâmica da temperatura da superfície terrestre (LST) ao longo de 30 anos (1989-2019) na Bacia do Ribeirão Santa Isabel/MG. Demonstração de que áreas agrícolas e solo exposto apresentaram temperaturas 1,62°C a 2,09°C superiores à vegetação nativa preservada de Cerrado.",
-                "folder": "artigos_midia/artigo_03_lst_cerrado/",
-                "maps": [
-                    {
-                        "title": "Mapa de Temperatura da Superfície (LST) da Bacia (1989 vs. 2019)",
-                        "type": "Mapa Térmico Multitemporal",
-                        "sensor": "Landsat 5 TM e Landsat 8 TIRS/OLI (Banda Termal)",
-                        "res": "30 m (re-amostrado termal)",
-                        "datum": "SIRGAS 2000 UTM 23S",
-                        "expected_file": "figura_01_lst_mapa.png"
-                    }
-                ]
-            },
-            4: {
-                "title": "Análise espacial da distribuição do ensino em função da renda em uma bacia hidrográfica",
-                "badge": "2022 • Nativa (v. 10, p. 05-15)",
-                "authors": "Jomil Costa Abreu Sales, et al.",
-                "desc": "Modelagem geoestatística com Krigagem Ordinária e densidade Kernel correlacionando vulnerabilidade socioeconômica, renda per capita e polos escolares na Bacia do Rio Una.",
-                "folder": "artigos_midia/artigo_04_rio_una/",
-                "maps": [
-                    {
-                        "title": "Mapa Geoestatístico de Krigagem de Renda e Polos de Ensino",
-                        "type": "Superfície Preditiva Contínua (Krigagem)",
-                        "sensor": "Dados Censitários IBGE / Georreferenciamento Escolar",
-                        "res": "Malha contínua interpolada (Grid 50 m)",
-                        "datum": "SIRGAS 2000 UTM 23S",
-                        "expected_file": "figura_01_krigagem_rio_una.png"
-                    }
-                ]
-            },
-            5: {
-                "title": "Creation of an environmental sustainability index for water resources applied to watersheds",
-                "badge": "2022 • Environment, Development and Sustainability (v. 1, p. 1-21)",
-                "authors": "Jomil Costa Abreu Sales, et al.",
-                "desc": "Desenvolvimento do índice sintético WRSI (Water Resources Sustainability Index) integrando 14 variáveis ambientais, hidrológicas e socioeconômicas via Processo Hierárquico Analítico (AHP).",
-                "folder": "artigos_midia/artigo_05_wrsi_ahp/",
-                "maps": [
-                    {
-                        "title": "Mapa Espacializado do Índice de Sustentabilidade Hídrica (WRSI)",
-                        "type": "Mapa Síntese de Sustentabilidade",
-                        "sensor": "Bases Hidrográficas, MDE SRTM e Dados Orbitais",
-                        "res": "Resolução 30 m",
-                        "datum": "SIRGAS 2000 UTM 23S",
-                        "expected_file": "figura_01_wrsi_mapa.png"
-                    }
-                ]
-            },
-            6: {
-                "title": "Reflexos Ambientais do Desenvolvimento e Expansão das Atividades Humanas sobre a Qualidade da Água",
-                "badge": "2022 • Revista Brasileira de Geografia Física (v. 15, p. 176-198)",
-                "authors": "Jomil Costa Abreu Sales, et al.",
-                "desc": "Avaliação geoespacial e temporal dos teores de fósforo total e eutrofização em bacias de abastecimento sob pressão agropecuária com dados da CETESB.",
-                "folder": "artigos_midia/artigo_06_fosforo_agua/",
-                "maps": [
-                    {
-                        "title": "Mapa de Concentração de Fósforo Total e Risco de Eutrofização",
-                        "type": "Mapa de Qualidade da Água por Sub-bacia",
-                        "sensor": "Monitoramento CETESB + Modelo Digital de Elevação",
-                        "res": "Sub-bacias hidrográficas",
-                        "datum": "SIRGAS 2000",
-                        "expected_file": "figura_01_fosforo_mapa.png"
-                    }
-                ]
-            }
-        }
-
-        art_data = arts_info[curr_art_id]
-
-        st.markdown(f"""
-        <div style="background-color: #FEF3C7; border: 1.5px solid #F59E0B; border-left: 6px solid #D97706; border-radius: 10px; padding: 1.1rem 1.4rem; margin: 1rem 0 1.2rem 0;">
-            <b style="color: #92400E; font-size: 0.96rem;">⏳ Formato Padrão em Fase de Validação:</b>
-            <p style="color: #78350F; font-size: 0.88rem; margin: 0.3rem 0 0 0; line-height: 1.5;">
-                Este artigo receberá a estrutura completa de <b>Pergunta Central, Problema & Hipótese, Resultados Obtidos, Solução Proposta e Galeria de Produtos</b> assim que você aprovar o padrão implementado no <b>Artigo 1</b> e anexar as figuras correspondentes.
-            </p>
-        </div>
-
-        <div style="background-color: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 1.3rem 1.6rem; margin-bottom: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.5rem;">
-                <span class="badge badge-green">{art_data["badge"]}</span>
-            </div>
-            <h3 style="font-family: 'Merriweather', serif; color: #0F172A; font-size: 1.25rem; margin: 0.3rem 0 0.6rem 0; line-height: 1.35;">
-                {art_data["title"]}
-            </h3>
-            <p style="font-size: 0.88rem; color: #475569; margin-bottom: 0.8rem;">
-                <b>Autores:</b> {art_data["authors"]}<br>
-                <b>Diretório no Drive:</b> <code>{art_data["folder"]}</code>
-            </p>
-            <div style="background: #F8FAFC; border-left: 4px solid #15803D; padding: 0.75rem 1rem; border-radius: 6px; font-size: 0.88rem; color: #1E293B;">
-                <b>Síntese do Estudo:</b> {art_data["desc"]}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("#### 🗺️ Produtos Cartográficos Previstos para Este Artigo")
-        for m in art_data["maps"]:
-            st.markdown(f"""
-            <div style="background-color: #FFFFFF; border: 1.5px dashed #94A3B8; border-radius: 10px; padding: 1.2rem; margin: 1rem 0; text-align: center;">
-                <div style="font-size: 2.2rem; margin-bottom: 0.3rem;">🗺️</div>
-                <b style="color: #0F172A; font-size: 1rem;">{m["title"]}</b>
-                <p style="font-size: 0.84rem; color: #64748B; margin: 0.3rem 0 0.4rem 0;">
-                    Arquivo esperado: <code>{m["expected_file"]}</code> na pasta <code>{art_data["folder"]}</code>.
-                </p>
-                <div style="font-size: 0.8rem; color: #15803D; font-weight: 600;">Os produtos e análises deste artigo serão ativados automaticamente após o envio das figuras.</div>
-            </div>
-            """, unsafe_allow_html=True)
+    artigo = ARTIGOS_POR_ID[st.session_state.selected_article_id]
+    cor_txt, cor_bg, cor_bd = STATUS_CORES[artigo["status"]]
 
     # -------------------------------------------------------------------------
-    # ASSISTENTE DE IA: CONVERSE COM O ARTIGO (RAG CIENTÍFICO INTERATIVO)
+    # CABEÇALHO DO ARTIGO SELECIONADO
     # -------------------------------------------------------------------------
-    st.markdown("""
-    <div style="margin: 1.8rem 0 0.7rem 0; border-top: 2px solid #E2E8F0; padding-top: 1.2rem;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 1.35rem;">🤖</span>
-            <h4 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0; font-size: 1.25rem;">
-                Assistente de IA: Dialogar com o Artigo
-            </h4>
-        </div>
-        <p style="font-size: 0.88rem; color: #475569; margin: 0.2rem 0 0.8rem 0;">
-            Faça perguntas técnicas sobre as equações biofísicas, dados do Sentinel-2 (10 m), correlação com MODIS GPP ou recomendações de manejo do manuscrito selecionado:
+    chips = [(artigo["status_label"], cor_txt, cor_bg, cor_bd),
+             (artigo["veiculo"], "#334155", "#F1F5F9", "#E2E8F0"),
+             (artigo["tema"], "#334155", "#F1F5F9", "#E2E8F0")]
+    if artigo.get("financiamento"):
+        chips.append((artigo["financiamento"], "#92400E", "#FEF3C7", "#FDE68A"))
+    chips_html = "".join(
+        f'<span style="font-size: 0.74rem; font-weight: 700; color: {c}; background: {b}; border: 1px solid {d}; padding: 0.2rem 0.55rem; border-radius: 5px;">{t}</span>'
+        for t, c, b, d in chips)
+    link_html = ""
+    if artigo.get("link_url"):
+        link_html = f'<br><a href="{artigo["link_url"]}" target="_blank" rel="noopener noreferrer" style="color: #15803D; font-weight: 700;">{artigo["link_label"]} ↗</a>'
+    html_block(f"""
+    <div style="background-color: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 1.4rem 1.6rem; margin: 1rem 0 1.2rem 0; box-shadow: 0 3px 8px rgba(0,0,0,0.03);">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.6rem;">{chips_html}</div>
+        <h3 style="font-family: 'Merriweather', serif; color: #0F172A; font-size: 1.32rem; margin: 0.3rem 0 0.6rem 0; line-height: 1.35;">{artigo["titulo"]}</h3>
+        <p style="font-size: 0.87rem; color: #475569; margin: 0; line-height: 1.55;">
+            <b>Autores:</b> {artigo["autores"]}<br>
+            <b>Minha participação:</b> {artigo["meu_papel"]}{link_html}
         </p>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
-    # Base de conhecimento para o chatbot
-    rag_kb = {
-        1: {
-            "title": "Carbon Flux Potential Prediction Model (APA Itupararanga)",
-            "context": "Artigo sobre a APA de Itupararanga (938,31 km²). Mostra que a cobertura florestal permaneceu 96% persistente e a vegetação total 91,8% estável entre 2019 e 2023, mas a área de Alto Potencial de Fluxo de CO2 retraiu -21,5% (de 200,83 km² para 157,72 km²). 95,7% dessa perda ocorreu DENTRO de matas que não sofreram desmatamento físico cartográfico. O proxy de fluxo de CO2 é sPRI x NDVI (Sentinel-2, 10m). A projeção para 2028 com o MOLUSCE (ANN-MLP com 10.000 amostras) prevê queda para 145,21 km² de alto potencial. Houve validação com MODIS GPP (500m) com r de Pearson = 0,705 (2019) e 0,662 (2023), ambos com p < 0,001.",
-            "quick_questions": [
-                "Qual a principal descoberta de degradação oculta no estudo?",
-                "Como é calculada a fórmula de fluxo de CO2 no Sentinel-2?",
-                "Qual foi o resultado da validação com o satélite MODIS da NASA?",
-                "Como funciona o modelo de projeção preditiva para 2028?"
-            ]
-        },
-        2: {
-            "title": "Avaliação do Índice IVEG com OWA para ICMS Ambiental",
-            "context": "Estudo sobre a aplicação do Índice de Vegetação Nativa (IVEG) e Ordered Weighted Averaging (OWA) em 645 municípios paulistas para alocação do ICMS Ecológico. Permite avaliar trade-offs entre conservação florestal e aversão ao risco na política pública fiscal.",
-            "quick_questions": [
-                "Como os operadores OWA são utilizados no ICMS Ecológico?",
-                "O que é o IVEG e como ele mede a vegetação nativa paulista?",
-                "Qual o impacto dessa metodologia para prefeituras e conservação?"
-            ]
-        },
-        3: {
-            "title": "Temperatura da Superfície (LST) e Conflito de Outorga Hídrica",
-            "context": "Artigo publicado na Sociedade & Natureza (2023) analisando 30 anos de dados térmicos Landsat no Cerrado (Bacia do Ribeirão Santa Isabel/MG). Comprova que matas nativas são 1,62°C a 2,09°C mais frescas que lavouras de pivô central e solo exposto.",
-            "quick_questions": [
-                "Qual a diferença de temperatura encontrada entre florestas e lavouras?",
-                "Quais sensores Landsat foram utilizados na série histórica?",
-                "Como o estudo relaciona temperatura de superfície e outorgas hídricas?"
-            ]
-        },
-        4: {
-            "title": "Geoestatística e Demografia da Cobertura do Solo (Bacia do Rio Una)",
-            "context": "Estudo publicado na Nativa (2022) utilizando Krigagem Ordinária e estimativa de densidade Kernel para mapear a distribuição espacial de renda e equipamentos de ensino na Bacia do Rio Una.",
-            "quick_questions": [
-                "Como a geoestatística foi aplicada na Bacia do Rio Una?",
-                "O que revelou a análise espacial entre renda e polos escolares?"
-            ]
-        },
-        5: {
-            "title": "Sustentabilidade de Recursos Hídricos via WRSI e AHP",
-            "context": "Artigo na Environment, Development and Sustainability (2022) propondo o índice sintético WRSI com 14 variáveis ambientais e hidrológicas ponderadas pelo Processo Hierárquico Analítico (AHP).",
-            "quick_questions": [
-                "O que é o índice WRSI e quais variáveis ele integra?",
-                "Como o método AHP ponderou os pesos dos indicadores?"
-            ]
-        },
-        6: {
-            "title": "Impacto da Ocupação Humana na Qualidade da Água (Fósforo)",
-            "context": "Publicação na Revista Brasileira de Geografia Física (2022) avaliando concentrações de fósforo total e transporte de cargas difusas em bacias hidrográficas sob pressão agrícola e urbana.",
-            "quick_questions": [
-                "Qual a relação encontrada entre expansão urbana e níveis de fósforo?",
-                "Quais medidas de controle de poluição difusa foram recomendadas?"
-            ]
-        }
-    }
+    # -------------------------------------------------------------------------
+    # OS 4 PILARES DA INVESTIGAÇÃO
+    # -------------------------------------------------------------------------
+    html_block("""
+    <div style="margin: 1.3rem 0 0.7rem 0;">
+        <h4 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0 0 0.2rem 0; font-size: 1.25rem;">
+            🎯 Estrutura Fundamental da Pesquisa: Da Pergunta à Solução Territorial
+        </h4>
+        <p style="font-size: 0.9rem; color: #475569; margin: 0;">
+            Síntese executiva dos fundamentos metodológicos, empíricos e práticos que norteiam este estudo:
+        </p>
+    </div>
+    """)
 
-    cur_kb = rag_kb.get(curr_art_id, rag_kb[1])
-    input_chat_key = f"input_chat_art_{curr_art_id}"
+    pilar_cols = st.columns(2)
+    with pilar_cols[0]:
+        html_block(f"""
+        <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #0284C7; border-radius: 10px; padding: 1.2rem; min-height: 275px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
+                <span style="font-size: 1.4rem;">❓</span>
+                <b style="font-size: 1.05rem; color: #0369A1; font-family: 'Merriweather', serif;">1. A Pergunta Central do Artigo</b>
+            </div>
+            <div style="font-size: 0.93rem; color: #0F172A; font-weight: 600; line-height: 1.5; background: #F0F9FF; padding: 0.7rem 0.9rem; border-radius: 6px; border: 1px solid #BAE6FD; margin-bottom: 0.6rem;">"{artigo["pergunta"]}"</div>
+            <p style="font-size: 0.85rem; color: #334155; line-height: 1.45; margin: 0;">{artigo["pergunta_nota"]}</p>
+        </div>
+        """)
+    with pilar_cols[1]:
+        html_block(f"""
+        <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #D97706; border-radius: 10px; padding: 1.2rem; min-height: 275px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
+                <span style="font-size: 1.4rem;">⚠️</span>
+                <b style="font-size: 1.05rem; color: #B45309; font-family: 'Merriweather', serif;">2. O Problema Levantado &amp; Hipótese</b>
+            </div>
+            <div style="font-size: 0.86rem; color: #1E293B; line-height: 1.45; margin-bottom: 0.5rem;"><b>O Problema Territorial:</b> {artigo["problema"]}</div>
+            <div style="font-size: 0.86rem; color: #92400E; background: #FEF3C7; padding: 0.6rem 0.8rem; border-radius: 6px; border: 1px solid #FDE68A; line-height: 1.4;"><b>A Hipótese Científica:</b> {artigo["hipotese"]}</div>
+        </div>
+        """)
 
-    if input_chat_key not in st.session_state:
-        st.session_state[input_chat_key] = ""
+    pilar_cols2 = st.columns(2)
+    with pilar_cols2[0]:
+        itens = "".join(f"<li style='margin-bottom: 0.35rem;'>{inline_md(r)}</li>" for r in artigo["resultados"])
+        html_block(f"""
+        <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #15803D; border-radius: 10px; padding: 1.2rem; min-height: 300px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
+                <span style="font-size: 1.4rem;">📊</span>
+                <b style="font-size: 1.05rem; color: #15803D; font-family: 'Merriweather', serif;">3. Os Resultados Obtidos (Evidências)</b>
+            </div>
+            <ul style="font-size: 0.85rem; color: #1E293B; line-height: 1.45; margin: 0 0 0 1.1rem; padding: 0;">{itens}</ul>
+        </div>
+        """)
+    with pilar_cols2[1]:
+        itens = "".join(f"<p style='margin: 0 0 0.45rem 0;'>{inline_md(s)}</p>" for s in artigo["solucao"])
+        html_block(f"""
+        <div style="background: #FFFFFF; border: 1.5px solid #CBD5E1; border-left: 6px solid #0D9488; border-radius: 10px; padding: 1.2rem; min-height: 300px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem;">
+                <span style="font-size: 1.4rem;">💡</span>
+                <b style="font-size: 1.05rem; color: #0F766E; font-family: 'Merriweather', serif;">4. A Solução para o Problema</b>
+            </div>
+            <div style="font-size: 0.85rem; color: #1E293B; line-height: 1.45;">{itens}</div>
+        </div>
+        """)
 
-    # Botões de perguntas rápidas que PREENCHEM automaticamente a caixa de texto
-    st.markdown("<p style='font-size: 0.82rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 0.4rem;'>💡 Sugestões de Perguntas Rápidas (Clique para preencher a caixa abaixo):</p>", unsafe_allow_html=True)
-    q_cols = st.columns(len(cur_kb["quick_questions"]))
-    for q_idx, q_text in enumerate(cur_kb["quick_questions"]):
-        with q_cols[q_idx]:
-            if st.button(q_text, key=f"quick_q_{curr_art_id}_{q_idx}", use_container_width=True):
-                st.session_state[input_chat_key] = q_text
+    # -------------------------------------------------------------------------
+    # FIGURAS DO ARTIGO
+    # -------------------------------------------------------------------------
+    html_block("""
+    <div style="margin: 1.6rem 0 0.8rem 0; border-top: 2px solid #E2E8F0; padding-top: 1.3rem;">
+        <h4 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0; font-size: 1.28rem;">
+            🗺️ Figuras &amp; Produtos Cartográficos do Artigo
+        </h4>
+        <p style="font-size: 0.88rem; color: #475569; margin: 0.3rem 0 0 0; line-height: 1.45;">
+            A figura ativa é exibida em alta resolução. Use os botões abaixo dela para navegar entre as figuras do estudo e ler a descrição correspondente.
+        </p>
+    </div>
+    """)
+
+    figuras = artigo["figuras"]
+    if not figuras:
+        html_block(f"""
+        <div style="background-color: #FFFBEB; border: 1.5px dashed #F59E0B; border-radius: 10px; padding: 1.6rem 1.4rem; margin: 0.6rem 0 1.2rem 0; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 0.4rem;">🗂️</div>
+            <b style="color: #92400E; font-size: 1rem;">Figuras ainda não disponíveis</b>
+            <p style="font-size: 0.86rem; color: #78350F; margin: 0.4rem 0 0 0; line-height: 1.5;">{artigo.get("figuras_pendentes", "")}</p>
+        </div>
+        """)
+    else:
+        fig_key = f"fig_idx_{artigo['id']}"
+        if fig_key not in st.session_state:
+            st.session_state[fig_key] = 0
+        current_idx = max(0, min(st.session_state[fig_key], len(figuras) - 1))
+        cur_fig = figuras[current_idx]
+
+        fig_b64 = get_article_figure_b64(artigo["pasta"], cur_fig["arquivo"])
+        if fig_b64:
+            html_block(f"""
+            <div style="background-color: #0F172A; border: 3px solid #1E293B; border-radius: 12px; padding: 1rem; text-align: center; margin: 0.9rem 0 0.6rem 0; box-shadow: 0 6px 18px rgba(0,0,0,0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; padding: 0 0.5rem; gap: 10px;">
+                    <span style="color: #94A3B8; font-size: 0.8rem; font-weight: 600;">Figura {current_idx + 1} de {len(figuras)}</span>
+                    <span style="color: #38BDF8; font-size: 0.8rem; font-weight: 600;">{cur_fig["titulo"]}</span>
+                </div>
+                <img src="data:image/png;base64,{fig_b64}" style="width: 100%; max-width: 1100px; border-radius: 6px; background: #FFFFFF; box-shadow: 0 4px 14px rgba(0,0,0,0.4);" />
+            </div>
+            """)
+        else:
+            html_block(f"""
+            <div style="background-color: #F8FAFC; border: 2px dashed #94A3B8; border-radius: 10px; padding: 2rem 1.2rem; text-align: center; margin: 0.9rem 0 0.6rem 0;">
+                <div style="font-size: 2.2rem; margin-bottom: 0.3rem;">🖼️</div>
+                <b style="color: #0F172A; font-size: 1.05rem;">{cur_fig["titulo"]}</b>
+                <p style="font-size: 0.86rem; color: #64748B; margin: 0.3rem 0 0 0;">Arquivo não encontrado em <code>{artigo["pasta"]}/{cur_fig["arquivo"]}</code>.</p>
+            </div>
+            """)
+
+        nav_col1, nav_col2, nav_col3 = st.columns([1.2, 3.6, 1.2])
+        with nav_col1:
+            if st.button("◀ Figura anterior", key=f"btn_prev_fig_{artigo['id']}", use_container_width=True):
+                st.session_state[fig_key] = (current_idx - 1) % len(figuras)
+                st.rerun()
+        with nav_col2:
+            html_block(f"""
+            <div style="text-align: center; background: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 8px; padding: 0.45rem 0.8rem; box-shadow: 0 1px 4px rgba(0,0,0,0.03);">
+                <span style="font-size: 0.88rem; font-weight: 800; color: #15803D;">Figura {current_idx + 1} de {len(figuras)}</span>
+                <span style="font-size: 0.84rem; color: #475569; margin-left: 6px;">• {cur_fig["titulo"]}</span>
+            </div>
+            """)
+        with nav_col3:
+            if st.button("Próxima figura ▶", key=f"btn_next_fig_{artigo['id']}", use_container_width=True, type="primary"):
+                st.session_state[fig_key] = (current_idx + 1) % len(figuras)
                 st.rerun()
 
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
+        st.markdown("<p style='font-size: 0.74rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin: 0.5rem 0 0.3rem 0;'>Seleção rápida (clique no número para alternar):</p>", unsafe_allow_html=True)
+        film_cols = st.columns(len(figuras))
+        for f_idx, f_item in enumerate(figuras):
+            with film_cols[f_idx]:
+                if st.button(f"{f_idx + 1:02d}", key=f"film_frame_{artigo['id']}_{f_idx}", use_container_width=True,
+                             type="primary" if f_idx == current_idx else "secondary", help=f_item["titulo"]):
+                    st.session_state[fig_key] = f_idx
+                    st.rerun()
 
-    # Exibição do histórico de mensagens do Chatbot
-    chat_box_html = '<div style="background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 1.2rem; min-height: 180px; max-height: 400px; overflow-y: auto; margin-bottom: 1rem; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">'
-    if not st.session_state.chat_history:
-        chat_box_html += f'<div style="color: #64748B; font-size: 0.88rem; font-style: italic; text-align: center; padding: 2rem 0;">Olá! Sou o Assistente Científico do manuscrito <b>{cur_kb["title"]}</b>. Clique em uma das perguntas rápidas acima para preencher a caixa ou digite qualquer dúvida técnica abaixo para dialogar com a pesquisa.</div>'
-    else:
-        for msg in st.session_state.chat_history:
-            if msg["role"] == "user":
-                chat_box_html += f'<div style="margin-bottom: 0.8rem; text-align: right;"><span style="background: #15803D; color: #FFF; padding: 0.45rem 0.85rem; border-radius: 14px 14px 2px 14px; font-size: 0.88rem; display: inline-block; max-width: 80%;"><b>Você:</b> {msg["content"]}</span></div>'
-            else:
-                chat_box_html += f'<div style="margin-bottom: 0.8rem; text-align: left;"><span style="background: #F1F5F9; color: #0F172A; padding: 0.6rem 0.95rem; border-radius: 14px 14px 14px 2px; font-size: 0.88rem; display: inline-block; max-width: 85%; border: 1px solid #E2E8F0; line-height: 1.5;"><b>Assistente Científico:</b><br>{msg["content"]}</span></div>'
-    chat_box_html += '</div>'
-    st.markdown(chat_box_html, unsafe_allow_html=True)
+        meta_items = "".join(
+            f'<div class="metadata-item"><div class="metadata-label">{k}</div><div class="metadata-val">{v}</div></div>'
+            for k, v in cur_fig["meta"].items())
+        fonte = artigo.get("figuras_origem", "")
+        fonte_html = f'<div style="font-size: 0.76rem; color: #64748B; margin-top: 0.9rem; border-top: 1px solid #E2E8F0; padding-top: 0.6rem;"><b>Fonte:</b> {artigo["referencia"]} {fonte}</div>' if fonte else ""
+        html_block(f"""
+        <div style="background-color: #FFFFFF; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 1.3rem 1.5rem; margin: 1rem 0 1.4rem 0; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E2E8F0; padding-bottom: 0.6rem; margin-bottom: 0.9rem; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.25rem;">🔎</span>
+                    <b style="font-size: 1.05rem; color: #0F172A;">{cur_fig["titulo"]}</b>
+                </div>
+                <span style="font-size: 0.76rem; font-weight: 700; color: #15803D; background: #DCFCE7; padding: 0.2rem 0.6rem; border-radius: 4px; white-space: nowrap;">Descrição da figura</span>
+            </div>
+            <p style="color: #1E293B; font-size: 0.94rem; line-height: 1.65; margin: 0;">{cur_fig["descricao"]}</p>
+            <div class="metadata-grid">{meta_items}</div>
+            {fonte_html}
+        </div>
+        """)
 
-    # Caixa de entrada de texto (Preenchida pelo botão ou digitada pelo usuário)
-    user_query = st.text_input(
-        "Digite sua pergunta sobre este artigo:",
-        key=input_chat_key,
-        placeholder="Ex: Qual a principal descoberta de degradação oculta no estudo?"
-    )
+    # -------------------------------------------------------------------------
+    # PERGUNTAS FREQUENTES (RESPOSTAS ESCRITAS A PARTIR DO ARTIGO)
+    # -------------------------------------------------------------------------
+    html_block("""
+    <div style="margin: 1.8rem 0 0.7rem 0; border-top: 2px solid #E2E8F0; padding-top: 1.2rem;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.35rem;">💬</span>
+            <h4 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0; font-size: 1.25rem;">Perguntas frequentes sobre este artigo</h4>
+        </div>
+        <p style="font-size: 0.88rem; color: #475569; margin: 0.2rem 0 0.8rem 0;">
+            Clique em uma pergunta para ver a resposta. O conteúdo foi redigido a partir do próprio artigo — números, fórmulas e conclusões vêm do texto publicado.
+        </p>
+    </div>
+    """)
 
-    if st.button("Enviar Pergunta ➔", key=f"btn_send_{curr_art_id}", type="primary"):
-        query_to_process = st.session_state.get(input_chat_key, "").strip()
-        if query_to_process:
-            st.session_state.chat_history.append({"role": "user", "content": query_to_process})
-            q_lower = query_to_process.lower()
-            if curr_art_id == 1:
-                if "ocult" in q_lower or "descoberta" in q_lower or "paradoxo" in q_lower:
-                    resp = "A descoberta central do manuscrito é o desacoplamento entre a persistência florestal e a eficiência funcional: enquanto o monitoramento tradicional de uso da terra registrou 96,0% de estabilidade da cobertura florestal entre 2019 e 2023, as áreas de Alto Potencial de Sequestro de CO2 sofreram uma retração drástica de -21,5% (de 200,83 km² para 157,72 km²). Crítico: 95,7% dessa perda ocorreu DENTRO de matas que continuaram como floresta no mapa, comprovando degradação fisiológica invisível ao satélite convencional."
-                elif "fórmula" in q_lower or "equa" in q_lower or "índice" in q_lower or "proxy" in q_lower:
-                    resp = "O proxy espectral relativo de fluxo de CO2 foi calculado como `sPRI × NDVI`. O NDVI (B08 - B04)/(B08 + B04) quantifica o vigor foliar e biomassa verde ativa a 10 m. O PRI adaptado ao Sentinel-2 utiliza (B02 - B03)/(B02 + B03), e o sPRI é seu escalonamento positivo linear (PRI + 1)/2. A multiplicação modula a biomassa verde pela eficiência fotoquímica do uso da luz (LUE), correlacionando-se diretamente à absorção de CO2."
-                elif "modis" in q_lower or "valida" in q_lower or "gpp" in q_lower:
-                    resp = "A validação cruzada independente foi conduzida com dados orbitais de Produtividade Primária Bruta (GPP MODIS MOD17A2H, 500 m) para a estação seca em mais de 3.600 pixels homogêneos (>= 70% vegetação). Obteve-se forte significância estatística (p < 0,001) em ambos os anos: Pearson r = 0,705 (2019) e 0,662 (2023); Spearman rho = 0,743 (2019) e 0,748 (2023), chancelando a metodologia com rigor internacional."
-                elif "2028" in q_lower or "projeção" in q_lower or "molusce" in q_lower or "modelo" in q_lower:
-                    resp = "A projeção para 2028 combinou Redes Neurais Artificiais (MOLUSCE ANN-MLP com 10.000 amostras e 500 iterações) e Autômatos Celulares Markovianos (CA-Markov). A simulação espacial projeta uma queda adicional das áreas de alto potencial de fixação de carbono para 145,21 km² em 2028, impulsionada pelo avanço antrópico periférico e pelo estresse hídrico na bacia."
-                elif "solução" in q_lower or "manejo" in q_lower or "recomenda" in q_lower:
-                    resp = "As soluções territoriais propostas incluem: (1) Adotar monitoramento funcional contínuo com Sentinel-2 (10 m) no Plano de Manejo da APA em vez de focar apenas em desmatamento; (2) Criar faixas de amortecimento e reflorestamento protetivo de 50 m no entorno de fragmentos nas zonas ZCRH e ZOR para mitigar o efeito de borda; e (3) Condicionar créditos de carbono e repasses do ICMS Ecológico à integridade metabólica medida por satélite."
-                elif "pergunta" in q_lower or "hipótese" in q_lower:
-                    resp = "A pergunta norteadora foi: 'A estabilidade cartográfica florestal em Unidades de Conservação garante, por si só, a manutenção de sua capacidade de sequestro de carbono?' A hipótese confirmada foi de que ocorre degradação funcional silenciosa na Mata Atlântica da APA de Itupararanga, identificável precocemente por índices biofísicos de alta resolução."
-                else:
-                    resp = f"Excelente pergunta sobre o manuscrito de Itupararanga. O estudo comprova que 95,7% da retração funcional de alto carbono (-21,5%) ocorreu sem corte raso de árvores, validado por satélite MODIS da NASA (p < 0,001). Posso detalhar a fórmula (sPRI × NDVI), o modelo MOLUSCE 2028 ou as diretrizes de manejo para a APA."
-            elif curr_art_id == 2:
-                resp = "No estudo do IVEG com OWA: os operadores Ordered Weighted Averaging permitiram simular cenários de compensação fiscal entre conservação e aversão ao risco para os 645 municípios de São Paulo, calibrando os repasses do ICMS Ecológico de acordo com as metas estaduais de vegetação nativa."
-            elif curr_art_id == 3:
-                resp = "No estudo da Bacia do Ribeirão Santa Isabel (Sociedade & Natureza, 2023), a série histórica de 30 anos com Landsat 5 e 8 comprovou que a vegetação nativa preservada de Cerrado atuou como regulador térmico, apresentando temperaturas de superfície (LST) de 1,62°C a 2,09°C inferiores às lavouras sob pivô central e solo exposto."
-            elif curr_art_id == 4:
-                resp = "Na Bacia do Rio Una (Nativa, 2022), a modelagem geoestatística com Krigagem Ordinária e estimativa de densidade Kernel evidenciou a correlação espacial entre níveis de vulnerabilidade socioeconômica e distância aos polos educacionais."
-            elif curr_art_id == 5:
-                resp = "O índice WRSI (Water Resources Sustainability Index) sintetizou 14 indicadores ambientais, morfométricos e antrópicos através de matrizes pareadas do Analytic Hierarchy Process (AHP), ranqueando sub-bacias por vulnerabilidade crítica à escassez hídrica."
-            elif curr_art_id == 6:
-                resp = "O estudo na bacia de abastecimento comprovou a correlação direta entre a expansão urbana e agropecuária e os picos de fósforo total registrados pela CETESB, caracterizando transporte de poluição difusa que acelera o processo de eutrofização."
-            else:
-                resp = "Pergunta processada com sucesso com base no acervo científico do Dr. Jomil Costa Abreu Sales."
-
-            st.session_state.chat_history.append({"role": "assistant", "content": resp})
-            st.rerun()
+    for q_idx, qa in enumerate(artigo["perguntas"]):
+        with st.expander(qa["pergunta"]):
+            st.markdown(qa["resposta"])
 
 
 elif selected_section == "WebSIG Interativo (APA Itupararanga)":
@@ -1994,7 +1603,7 @@ elif selected_section == "Criações com IA & Produtos":
             st.markdown("""
             - **Rigor Técnico contra Alucinações:** O agente é ancorado estritamente em papers, teses, relatórios de EIA/RIMA e matrizes de satélite, garantindo que valores numéricos, datas e fórmulas sejam reproduzidos com 100% de precisão.
             - **Interpretação Multiespectral:** Capaz de explicar fórmulas matemáticas de sensoriamento remoto (como `$sPRI \times NDVI$`), correlações estatísticas (Pearson, Spearman) e bandas orbitais (Sentinel-2, MODIS).
-            - **Aplicação no Portfólio:** A tecnologia já está implementada de forma interativa na seção **Produção Científica & Interativa**, permitindo a qualquer avaliador ou cliente dialogar diretamente com as pesquisas de Dr. Jomil.
+            - **Aplicação no Portfólio:** Na seção **Artigos Científicos & Publicações**, cada estudo traz um bloco de perguntas frequentes com respostas redigidas a partir do próprio artigo — os números, fórmulas e conclusões vêm do texto publicado, sem geração automática.
             """)
         with c_a2:
             st.markdown("""
@@ -2229,16 +1838,141 @@ elif selected_section in ["Consultoria Ambiental & Tutoria em SIG", "Consultoria
 
 
 elif selected_section == "Trajetória Profissional & Docência":
-    st.markdown("""
-    <div style="background-color: #FFFFFF; border: 1px solid #CBD5E1; border-left: 6px solid #15803D; border-radius: 10px; padding: 1.2rem 1.6rem; margin-bottom: 1.2rem;">
-        <h2 style="font-family: 'Merriweather', serif; color: #0F172A; margin: 0 0 0.3rem 0; font-size: 1.6rem;">
-            Trajetória Acadêmica, Docência & Consultoria Ambiental
-        </h2>
-        <p style="font-size: 0.95rem; color: #475569; margin: 0;">
-            Quase duas décadas de dedicação à pesquisa florestal, geoprocessamento e mercado ambiental
-        </p>
+    TRAJETORIA_LINHA = [
+        ("2005 — 2009", "Bacharelado e Licenciatura em Ciências Biológicas",
+         "Pontifícia Universidade Católica (PUC) · formação em Biologia com habilitação para docência", False),
+        ("2007 — 2008", "Iniciação Científica (PIBIC/CNPq)",
+         "Primeiro contato com pesquisa aplicada em ecologia e ambiente", False),
+        ("2009 — 2011", "Professor · Prefeitura Municipal de Sorocaba",
+         "Início da atuação docente na rede pública", False),
+        ("2010 — 2012", "Consultor Ambiental autônomo",
+         "Habilitação FIA / SEMIL-SP · vistorias de passivos, apoio a TAC do Ministério Público e acompanhamento de PRADs", False),
+        ("2011 — 2012", "Analista Ambiental · MEDRAL Meio Ambiente",
+         "Licenciamento completo (LP, LI, LO), EIA/RIMA, RAP e EIV em linhas de transmissão e empreendimentos imobiliários", False),
+        ("2013 — 2015", "Mestrado em Ciências Ambientais · UNESP Sorocaba",
+         "Bolsas CNPq e Projeto Novos Talentos (IPT) · geoprocessamento aplicado a bacias hidrográficas", False),
+        ("2015 — 2019", "Doutorado em Ciências Ambientais · UNESP",
+         "Com período sanduíche em Portugal (programa BE MUNDUS) · análise espacial e indicadores socioambientais", False),
+        ("2018 — 2021", "Professor Adjunto I · Universidade de Sorocaba (UNISO)",
+         "SIG, Cartografia Básica, Ecologia e Recuperação de Áreas Degradadas nos cursos de Engenharia Ambiental, Agronômica, Biologia e Psicologia", False),
+        ("2020 — 2023", "Professor de Ensino Médio",
+         "Docência em Biologia e Ciências da Natureza", False),
+        ("2023 — 2024", "Pós-doutorado · UNESP — ICTS Sorocaba",
+         "Análise temporal do fluxo de carbono e modelo preditivo por índices espectrais na APA de Itupararanga", False),
+        ("ago/2023 — jun/2024", "Pesquisador visitante · Freie Universität Berlin",
+         "Instituto de Ciências Geográficas — Sensoriamento Remoto e Geoinformática, com o Prof. Dr. Fabian Fassnacht · simulação de florestas virtuais e dados LiDAR em R", False),
+        ("2024 — atual", "Pós-doutorado em Ciências Florestais · ESALQ/USP",
+         "Bolsista FAPESP no projeto DecisionES-BR (cooperação H2020 Marie Curie) · apoio à decisão para serviços ecossistêmicos sob mudança global", True),
+        ("2026 — atual", "MBA em ESG e Negócios Sustentáveis · ESALQ/USP",
+         "Formação executiva em ESG, sustentabilidade corporativa e negócios de baixo carbono, conectando a pesquisa ambiental à tomada de decisão empresarial", True),
+    ]
+
+    ATUACAO_CARTOES = [
+        ("Sensoriamento remoto &amp; satélites", "sensoriamento",
+         "Séries Sentinel-2, Landsat e MODIS processadas em nuvem (Google Earth Engine) para detectar mudança de cobertura, estresse hídrico e perda de vigor fotossintético antes que virem desmatamento."),
+        ("Geoprocessamento &amp; cartografia", "cartografia",
+         "Mapeamento e análise espacial em QGIS e ArcGIS: delimitação de APPs e Reserva Legal, geoestatística, modelagem multicritério (AHP e OWA) e produção cartográfica para órgãos ambientais."),
+        ("Licenciamento &amp; perícia ambiental", "licenciamento",
+         "EIA/RIMA, RAP, PRAD e laudos de cobertura vegetal; vistorias de passivos ambientais, apoio técnico a Termos de Ajustamento de Conduta e acompanhamento de autos de infração."),
+        ("Docência &amp; formação", "docencia",
+         "Professor Adjunto na UNISO e tutor na UNESP e na ESALQ/USP em SIG, Cartografia, Ecologia e Recuperação de Áreas Degradadas, além de orientações de iniciação científica, mestrado e doutorado."),
+        ("Restauração &amp; serviços ecossistêmicos", "restauracao",
+         "Projetos de recomposição florestal e priorização de áreas para restauração, integrando serviços ecossistêmicos à decisão territorial no pós-doutorado DecisionES-BR."),
+        ("Carbono florestal &amp; Mata Atlântica", "carbono",
+         "Modelagem do potencial de fluxo de CO₂ com índices espectrais e projeção de cenários (MOLUSCE / CA-Markov) aplicados à APA de Itupararanga e a remanescentes de Mata Atlântica."),
+    ]
+
+    html_block("""
+    <style>
+    .traj-hero { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 1.4rem; min-height: 250px; display: flex; align-items: flex-end; border-left: 6px solid #16A34A; box-shadow: 0 4px 16px rgba(0,0,0,0.10); background-image: linear-gradient(rgba(14,43,23,0.28), rgba(14,43,23,0.86)), url('https://images.unsplash.com/photo-1738625256303-d07f7c459982?auto=format&fit=crop&w=1800&q=80'); background-size: cover; background-position: center 55%; }
+    .traj-hero-inner { padding: 1.5rem 1.8rem; }
+    .traj-kicker { display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #BBF7D0; border: 1px solid rgba(187,247,208,0.5); border-radius: 4px; padding: 0.18rem 0.55rem; margin-bottom: 0.6rem; }
+    .traj-hero h2 { font-family: 'Merriweather', serif; color: #FFFFFF; font-size: 1.85rem; margin: 0 0 0.35rem 0; line-height: 1.2; letter-spacing: -0.01em; }
+    .traj-hero p { color: #E2E8F0; font-size: 0.97rem; margin: 0; max-width: 780px; line-height: 1.5; }
+    .sec-title { font-family: 'Merriweather', serif; color: #0F172A; font-size: 1.25rem; margin: 1.6rem 0 0.2rem 0; }
+    .sec-sub { font-size: 0.9rem; color: #475569; margin: 0 0 0.9rem 0; }
+    .tl { position: relative; }
+    .tl::before { content: ""; position: absolute; left: 147px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, #BBF7D0, #15803D 45%, #BBF7D0); }
+    .tl-item { display: grid; grid-template-columns: 132px 32px 1fr; align-items: start; margin-bottom: 0.7rem; }
+    .tl-when { font-size: 0.79rem; font-weight: 800; color: #15803D; text-align: right; padding-top: 0.55rem; line-height: 1.25; }
+    .tl-mark { position: relative; height: 100%; }
+    .tl-mark i { position: absolute; left: 10px; top: 0.6rem; width: 11px; height: 11px; border-radius: 50%; background: #FFFFFF; border: 3px solid #15803D; box-shadow: 0 0 0 3px #ECFDF5; }
+    .tl-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-left: 4px solid #15803D; border-radius: 8px; padding: 0.6rem 0.95rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .tl-card b { font-family: 'Merriweather', serif; font-size: 0.93rem; color: #0F172A; }
+    .tl-card span { display: block; font-size: 0.83rem; color: #475569; margin-top: 0.18rem; line-height: 1.45; }
+    .tl-item.atual .tl-card { background: #F0FDF4; border-color: #BBF7D0; }
+    .tl-item.atual .tl-mark i { background: #15803D; }
+    .flip-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 14px; margin-top: 0.4rem; }
+    .flip-card { perspective: 1200px; height: 250px; outline: none; }
+    .flip-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+    .flip-card:hover .flip-inner, .flip-card:focus .flip-inner, .flip-card:focus-within .flip-inner { transform: rotateY(180deg); }
+    .flip-front, .flip-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 12px rgba(15,23,42,0.10); }
+    .flip-front { background: #F7FAF5; display: flex; align-items: flex-end; border: 1px solid #CBD5E1; }
+    .flip-front .ilu { position: absolute; inset: 0; }
+    .flip-front .ilu svg { width: 100%; height: 100%; display: block; }
+    .flip-front .ilu img.arte { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .flip-front-hint { position: relative; margin: 0 0 0.75rem auto; margin-right: 0.75rem; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #ECFDF5; background: rgba(14,43,23,0.72); border: 1px solid rgba(187,247,208,0.35); border-radius: 20px; padding: 0.22rem 0.6rem; }
+    .flip-front-label { position: relative; width: 100%; padding: 0.85rem 1rem; background: linear-gradient(transparent, rgba(14,43,23,0.88) 55%); color: #FFFFFF; font-family: 'Merriweather', serif; font-weight: 700; font-size: 0.97rem; line-height: 1.3; }
+    .flip-front-label em { display: block; font-style: normal; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 0.72rem; color: #BBF7D0; margin-top: 0.25rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .flip-back { transform: rotateY(180deg); background: linear-gradient(155deg, #14532D 0%, #15803D 100%); color: #ECFDF5; padding: 1.15rem 1.25rem; display: flex; flex-direction: column; justify-content: center; border: 1px solid #14532D; }
+    .flip-back b { font-family: 'Merriweather', serif; font-size: 0.97rem; color: #FFFFFF; display: block; margin-bottom: 0.5rem; }
+    .flip-back p { font-size: 0.85rem; line-height: 1.55; margin: 0; color: #DCFCE7; }
+    .credito { font-size: 0.74rem; color: #94A3B8; margin: 0.7rem 0 1.2rem 0; }
+    @media (max-width: 640px) {
+    .tl::before { display: none; }
+    .tl-item { grid-template-columns: 1fr; }
+    .tl-mark { display: none; }
+    .tl-when { text-align: left; padding: 0 0 0.2rem 0.1rem; }
+    .traj-hero h2 { font-size: 1.4rem; }
+    }
+    </style>
+    <div class="traj-hero">
+        <div class="traj-hero-inner">
+            <span class="traj-kicker">Trajetória</span>
+            <h2>Duas décadas entre a floresta, o mapa e a sala de aula</h2>
+            <p>Da graduação em Ciências Biológicas ao pós-doutorado em Ciências Florestais na ESALQ/USP, passando pelo licenciamento ambiental, pela docência universitária e pela pesquisa em sensoriamento remoto na Alemanha.</p>
+        </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
+
+    html_block("""
+    <h3 class="sec-title">Formação &amp; atuação em linha do tempo</h3>
+    <p class="sec-sub">Percurso acadêmico e profissional, do primeiro diploma à pesquisa atual.</p>
+    """)
+
+    itens_tl = "".join(
+        f'<div class="tl-item{" atual" if atual else ""}">'
+        f'<div class="tl-when">{quando}</div>'
+        f'<div class="tl-mark"><i></i></div>'
+        f'<div class="tl-card"><b>{titulo}</b><span>{detalhe}</span></div>'
+        f'</div>'
+        for quando, titulo, detalhe, atual in TRAJETORIA_LINHA)
+    html_block(f'<div class="tl">{itens_tl}</div>')
+
+    html_block("""
+    <h3 class="sec-title">Áreas de atuação profissional</h3>
+    <p class="sec-sub">Passe o mouse sobre cada imagem (ou toque, no celular) para ver o que envolve cada frente de trabalho.</p>
+    """)
+
+    cartoes = []
+    for titulo, base, texto in ATUACAO_CARTOES:
+        arte, tem_imagem = get_arte_cartao(base)
+        # quando a imagem já traz o título, o rótulo vira só uma dica discreta
+        rotulo = ('<div class="flip-front-hint">passe o mouse</div>' if tem_imagem
+                  else f'<div class="flip-front-label">{titulo}<em>Passe o mouse</em></div>')
+        cartoes.append(
+            f'<div class="flip-card" tabindex="0"><div class="flip-inner">'
+            f'<div class="flip-front"><div class="ilu">{arte}</div>{rotulo}</div>'
+            f'<div class="flip-back"><b>{titulo}</b><p>{texto}</p></div>'
+            f'</div></div>')
+    cartoes = "".join(cartoes)
+    html_block(f'<div class="flip-grid">{cartoes}</div>')
+    html_block('<p class="credito">Imagem de capa: banco de imagens livre Unsplash.</p>')
+
+    html_block("""
+    <h3 class="sec-title">Detalhamento da experiência</h3>
+    <p class="sec-sub">Pós-doutorados, docência no ensino superior e atuação no mercado ambiental.</p>
+    """)
 
     tab_p1, tab_p2, tab_p3 = st.tabs([
         "Pós-Doutorados de Ponta",

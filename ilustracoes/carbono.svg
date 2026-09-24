@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ilustração de fluxo de carbono em fragmento de Mata Atlântica">
+  <defs>
+    <filter id="cb-rough" x="-12%" y="-12%" width="124%" height="124%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.031" numOctaves="3" seed="43" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="cb-grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="12"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <pattern id="cb-hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#15803D" stroke-width="1.1" opacity="0.55"/>
+    </pattern>
+    <pattern id="cb-hatch-d" width="6" height="6" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#14532D" stroke-width="1.2" opacity="0.6"/>
+    </pattern>
+  </defs>
+
+  <rect width="400" height="300" fill="#F7FAF5"/>
+  <rect width="400" height="300" filter="url(#cb-grain)" opacity="0.07"/>
+
+  <g filter="url(#cb-rough)" fill="none" stroke="#14532D" stroke-linecap="round" stroke-linejoin="round">
+    <!-- serras ao fundo -->
+    <g stroke-width="1.8" opacity="0.5">
+      <path d="M0 110 C 40 76, 78 78, 112 108 C 140 84, 176 88, 200 112"/>
+      <path d="M186 108 C 224 78, 268 80, 298 106 C 326 88, 366 92, 400 114"/>
+    </g>
+
+    <!-- moléculas de CO2 entrando -->
+    <g stroke-width="1.8" opacity="0.9">
+      <g>
+        <circle cx="66" cy="44" r="7" fill="#FFFFFF"/>
+        <circle cx="82" cy="40" r="4.5" fill="#FFFFFF"/>
+        <circle cx="50" cy="48" r="4.5" fill="#FFFFFF"/>
+      </g>
+      <g>
+        <circle cx="212" cy="34" r="7" fill="#FFFFFF"/>
+        <circle cx="228" cy="30" r="4.5" fill="#FFFFFF"/>
+        <circle cx="196" cy="38" r="4.5" fill="#FFFFFF"/>
+      </g>
+      <g>
+        <circle cx="336" cy="52" r="7" fill="#FFFFFF"/>
+        <circle cx="352" cy="48" r="4.5" fill="#FFFFFF"/>
+        <circle cx="320" cy="56" r="4.5" fill="#FFFFFF"/>
+      </g>
+    </g>
+    <text x="52" y="30" font-family="Georgia, serif" font-size="13" fill="#14532D" stroke="none">CO₂</text>
+    <text x="198" y="20" font-family="Georgia, serif" font-size="13" fill="#14532D" stroke="none">CO₂</text>
+    <text x="322" y="38" font-family="Georgia, serif" font-size="13" fill="#14532D" stroke="none">CO₂</text>
+
+    <!-- setas de absorção -->
+    <g stroke-width="1.7" stroke-dasharray="7 6" opacity="0.85">
+      <path d="M68 58 C 72 84, 82 102, 92 118"/>
+      <path d="M86 110 l 8 10 l -12 2"/>
+      <path d="M214 48 C 216 74, 214 92, 210 112"/>
+      <path d="M204 104 l 6 11 l -11 -1"/>
+      <path d="M336 66 C 332 90, 324 104, 314 120"/>
+      <path d="M320 112 l -6 11 l -6 -9"/>
+    </g>
+
+    <!-- copas do fragmento -->
+    <g stroke-width="2.4">
+      <path d="M52 176 C 48 142, 80 122, 106 136 C 130 120, 160 138, 154 164 C 168 178, 148 200, 126 194 C 100 204, 56 198, 52 176 z" fill="url(#cb-hatch)"/>
+      <path d="M170 186 C 166 158, 194 142, 216 154 C 238 142, 262 158, 256 180 C 268 192, 250 210, 230 204 C 208 212, 172 206, 170 186 z" fill="url(#cb-hatch-d)"/>
+      <path d="M268 178 C 266 150, 296 134, 318 148 C 342 136, 366 154, 358 178 C 370 192, 350 210, 328 202 C 304 210, 270 200, 268 178 z" fill="url(#cb-hatch)"/>
+    </g>
+
+    <!-- troncos -->
+    <g stroke-width="3">
+      <path d="M104 196 C 102 222, 104 240, 106 256"/>
+      <path d="M214 206 C 212 228, 214 244, 216 260"/>
+      <path d="M314 202 C 312 226, 314 242, 316 258"/>
+    </g>
+    <g stroke-width="1.8" opacity="0.8">
+      <path d="M104 216 l -14 -12 M105 232 l 14 -12"/>
+      <path d="M214 224 l -12 -10 M215 240 l 12 -11"/>
+      <path d="M314 220 l -13 -11 M315 236 l 13 -11"/>
+    </g>
+
+    <!-- solo e serapilheira -->
+    <path d="M0 262 C 90 256, 180 262, 268 258 C 330 255, 366 260, 400 257" stroke-width="2.8"/>
+    <g stroke-width="1.4" opacity="0.6">
+      <path d="M24 274 l 18 -4 M64 278 l 16 -4 M130 272 l 18 -4 M196 276 l 16 -4 M262 272 l 18 -4 M330 276 l 16 -4"/>
+    </g>
+
+    <!-- escala de potencial, canto inferior direito -->
+    <g stroke-width="1.6">
+      <rect x="296" y="272" width="18" height="10" fill="#D9EF8B"/>
+      <rect x="314" y="272" width="18" height="10" fill="#91CF60"/>
+      <rect x="332" y="272" width="18" height="10" fill="#1A9641"/>
+      <rect x="350" y="272" width="18" height="10" fill="#005A2B"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ilustração de satélite observando a superfície terrestre">
+  <defs>
+    <filter id="sr-rough" x="-12%" y="-12%" width="124%" height="124%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="sr-grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <pattern id="sr-hatch" width="7" height="7" patternTransform="rotate(40)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#15803D" stroke-width="1.1" opacity="0.55"/>
+    </pattern>
+    <pattern id="sr-hatch2" width="9" height="9" patternTransform="rotate(-35)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="9" stroke="#0F766E" stroke-width="1" opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <rect width="400" height="300" fill="#F6FAF4"/>
+  <rect width="400" height="300" filter="url(#sr-grain)" opacity="0.07"/>
+
+  <g filter="url(#sr-rough)" fill="none" stroke="#14532D" stroke-linecap="round" stroke-linejoin="round">
+    <!-- estrelas -->
+    <g stroke-width="1.6" opacity="0.65">
+      <path d="M40 34 l0 9 M35.5 38.5 l9 0"/>
+      <path d="M340 30 l0 7 M336.5 33.5 l7 0"/>
+      <path d="M296 62 l0 6 M293 65 l6 0"/>
+      <path d="M72 96 l0 6 M69 99 l6 0"/>
+    </g>
+
+    <!-- órbita -->
+    <path d="M18 128 C 90 52, 300 40, 392 108" stroke-width="1.7" stroke-dasharray="9 8" opacity="0.8"/>
+
+    <!-- satélite -->
+    <g stroke-width="2.4">
+      <rect x="172" y="60" width="54" height="38" rx="5" fill="#ECFDF5"/>
+      <rect x="180" y="68" width="38" height="22" rx="3" fill="url(#sr-hatch)" stroke-width="1.4"/>
+      <!-- painéis solares -->
+      <rect x="104" y="64" width="60" height="30" rx="3" fill="#F0FDF4"/>
+      <rect x="234" y="64" width="60" height="30" rx="3" fill="#F0FDF4"/>
+      <g stroke-width="1.3" opacity="0.8">
+        <path d="M119 64 l0 30 M134 64 l0 30 M149 64 l0 30 M104 79 l60 0"/>
+        <path d="M249 64 l0 30 M264 64 l0 30 M279 64 l0 30 M234 79 l60 0"/>
+      </g>
+      <path d="M164 79 l8 0 M226 79 l8 0"/>
+      <!-- antena -->
+      <path d="M199 98 l0 14"/>
+      <path d="M182 128 A 22 22 0 0 1 216 128 z" fill="#ECFDF5"/>
+      <path d="M199 112 l0 12"/>
+    </g>
+
+    <!-- feixe de varredura -->
+    <g stroke-width="1.6" stroke-dasharray="7 7" opacity="0.85">
+      <path d="M190 130 L 128 214"/>
+      <path d="M208 130 L 276 214"/>
+      <path d="M199 130 L 202 214"/>
+    </g>
+
+    <!-- nuvens -->
+    <g stroke-width="2">
+      <path d="M58 158 c 6 -12 24 -12 29 -1 c 12 -5 22 4 18 13 l -52 0 c -6 -3 -4 -11 5 -12 z" fill="#FFFFFF" opacity="0.95"/>
+      <path d="M300 146 c 5 -10 20 -10 24 -1 c 10 -4 18 3 15 11 l -44 0 c -5 -3 -3 -9 5 -10 z" fill="#FFFFFF" opacity="0.95"/>
+    </g>
+
+    <!-- superfície observada: malha de pixels -->
+    <g stroke-width="2.2">
+      <path d="M96 236 L 200 200 L 320 244 L 214 286 z" fill="#FFFFFF"/>
+    </g>
+    <g stroke-width="1.15" opacity="0.85">
+      <path d="M122 226 L 240 268 M148 216 L 266 258 M174 208 L 292 250"/>
+      <path d="M122 254 L 226 216 M150 264 L 254 226 M178 274 L 282 236"/>
+    </g>
+    <g stroke-width="1.2">
+      <path d="M174 208 L 200 200 L 226 216 L 200 226 z" fill="url(#sr-hatch)"/>
+      <path d="M200 226 L 226 216 L 254 226 L 228 238 z" fill="url(#sr-hatch2)"/>
+      <path d="M150 264 L 178 274 L 214 286 L 186 276 z" fill="url(#sr-hatch)" opacity="0.7"/>
+    </g>
+
+    <!-- curvatura do terreno -->
+    <g stroke-width="2" opacity="0.6">
+      <path d="M12 268 C 60 252, 92 250, 112 256"/>
+      <path d="M306 254 C 336 246, 368 250, 392 262"/>
+    </g>
+  </g>
+</svg>

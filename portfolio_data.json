@@ -1,0 +1,330 @@
+{
+  "researcher": {
+    "name": "Dr. Jomil Costa Abreu Sales",
+    "title": "Biólogo | Pós-Doutor em Ciências Florestais (ESALQ/USP) | Doutor em Ciências Ambientais (UNESP / TU Berlin / FCT Nova Lisboa)",
+    "summary": "Especialista em Geotecnologias, Sensoriamento Remoto, Modelagem Preditiva de Uso da Terra, Fluxo de Carbono e Ecologia da Paisagem. Desenvolvedor de metodologias para detecção de degradação florestal funcional invisível ao desmatamento tradicional, valoração de serviços ecossistêmicos e inteligência territorial para tomada de decisão.",
+    "links": {
+      "lattes": "http://lattes.cnpq.br/0266681173969604",
+      "orcid": "https://orcid.org/0000-0001-8722-8398",
+      "scholar": "https://scholar.google.com/citations?user=3ymOKh8AAAAJ&hl=en",
+      "researchgate": "https://www.researchgate.net/profile/Jomil-Sales",
+      "ssrn": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7268395",
+      "email": "jomil.sales@usp.br",
+      "linkedin": "https://www.linkedin.com/in/jomil-costa-phd-53817838/"
+    },
+    "stats": {
+      "published_articles": 25,
+      "preprints_under_review": 1,
+      "monitored_territories_ha": "216.500+ ha",
+      "satellites_mastered": "Sentinel-2 • Landsat 5/8/9 • MODIS",
+      "tools_stack": "QGIS (MOLUSCE) • ArcGIS • GEE • R • Python"
+    }
+  },
+  "featured_manuscript": {
+    "id": "PREPRINT-2024",
+    "title": "Carbon Flux Potential Prediction Model Based on Land Cover and Land Use: Application in the Itupararanga Environmental Protection Area, SP, Brazil",
+    "status": "Versão Ajustada do Preprint (Pós-Revisão por Pares)",
+    "original_preprint_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7268395",
+    "doi_status": "Preprint em fase final de publicação (sem DOI definitivo ainda)",
+    "authors": [
+      "Jomil Costa Abreu Sales (Autor Correspondente - ESALQ/USP)",
+      "Nícholas de Paula Nicomedes (UNESP)",
+      "Darllan Collins da Cunha e Silva (UNESP)",
+      "Roberto Wagner Lourenço (UNESP)"
+    ],
+    "funding": "FAPESP (Processo 2024/14444-2) e CAPES (Código 001)",
+    "study_area": {
+      "name": "Área de Proteção Ambiental (APA) de Itupararanga",
+      "legal_basis": "Lei Estadual nº 10.100/1998 e Lei nº 11.579/2003",
+      "municipalities": "Alumínio, Cotia, Ibiúna, Mairinque, Piedade, São Roque, Vargem Grande Paulista e Votorantim",
+      "state": "São Paulo (SP), Brasil",
+      "biome": "Mata Atlântica (Floresta Ombrófila Densa)",
+      "total_area_km2": 938.31,
+      "reservoir": "Represa de Itupararanga (Rio Sorocaba) - vital para abastecimento e energia (CBA)",
+      "zoning": [
+        "Zona de Conservação da Biodiversidade (ZCB)",
+        "Zona de Conservação de Recursos Hídricos (ZCRH)",
+        "Zona de Ocupação Rural (ZOR)",
+        "Zona de Ocupação Diversificada (ZOD)",
+        "Zona de Ocupação Consolidada (ZOC)"
+      ]
+    },
+    "central_discovery": {
+      "headline": "Degradação Funcional Oculta dentro de Unidade de Conservação da Mata Atlântica",
+      "the_paradox": "Enquanto a cobertura da terra permaneceu 91.8% estável entre 2019 e 2023 (e as florestas tiveram 96.0% de persistência), as áreas de Alto Potencial de Sequestro de Carbono sofreram uma retração severa de -21.5% (de 200.83 km² para 157.72 km²).",
+      "crucial_finding": "95.7% dessa perda ocorreu DENTRO de áreas de floresta que NÃO sofreram desmatamento cartográfico (65.66 km² continuaram como floresta, mas perderam vigor fotossintético e capacidade de retenção de CO2). Esse declínio é totalmente invisível ao monitoramento clássico de uso do solo!",
+      "edge_effect": "A perda de potencial fotossintético foi maior próximo às bordas dos fragmentos (46.4% de perda a até 20m da borda vs. 35.0% além de 200m)."
+    },
+    "geotechnology_method": {
+      "satellites": "Sentinel-2 L2A (10 m de resolução espacial, bandas B02-Azul, B03-Verde, B04-Vermelho e B08-NIR, cenas de inverno seco 2019 e 2023 com 0.0035% de nuvens).",
+      "indices_formulas": [
+        {
+          "name": "NDVI",
+          "formula": "(B08 - B04) / (B08 + B04)",
+          "description": "Índice de Vegetação por Diferença Normalizada (vigor e biomassa verde)."
+        },
+        {
+          "name": "PRI",
+          "formula": "(B02 - B03) / (B02 + B03)",
+          "description": "Índice de Refletância Fotoquímica adaptado às bandas do Sentinel-2 (eficiência do uso da luz)."
+        },
+        {
+          "name": "sPRI",
+          "formula": "(PRI + 1) / 2",
+          "description": "Escalonamento linear positivo (0 a 1)."
+        },
+        {
+          "name": "CO2 Flux Proxy",
+          "formula": "sPRI × NDVI",
+          "description": "Indicador espectral relativo do potencial de sequestro de CO2."
+        }
+      ],
+      "lulc_source": "MapBiomas Coleção 10 m (beta, baseada em Sentinel-2), reclassificada em 6 classes.",
+      "predictive_model_2028": "Plugin MOLUSCE (QGIS) combinando Rede Neural Artificial (ANN-MLP com 10.000 amostras e 500 iterações) e Autômatos Celulares com Cadeias de Markov (CA-Markov).",
+      "validation_gpp": "Validação cruzada independente com dados de Produtividade Primária Bruta (GPP MODIS MOD17A2H, 500m) no Google Earth Engine, confirmando forte correlação estatística: Pearson r = 0.705 (2019) e 0.662 (2023); Spearman rho = 0.743 (2019) e 0.748 (2023); p < 0.001."
+    },
+    "data_comparison": {
+      "lulc_table": [
+        {
+          "classe": "Corpos Hídricos",
+          "area_2019_km2": 26.78,
+          "area_2023_km2": 25.21,
+          "area_2028_km2": 24.46,
+          "delta_pct_19_23": -5.9
+        },
+        {
+          "classe": "Floresta Nativa",
+          "area_2019_km2": 406.25,
+          "area_2023_km2": 395.5,
+          "area_2028_km2": 396.59,
+          "delta_pct_19_23": -2.6
+        },
+        {
+          "classe": "Silvicultura",
+          "area_2019_km2": 36.92,
+          "area_2023_km2": 39.08,
+          "area_2028_km2": 39.11,
+          "delta_pct_19_23": 5.9
+        },
+        {
+          "classe": "Área Urbana",
+          "area_2019_km2": 40.91,
+          "area_2023_km2": 48.97,
+          "area_2028_km2": 49.6,
+          "delta_pct_19_23": 19.7
+        },
+        {
+          "classe": "Agricultura / Cultivos",
+          "area_2019_km2": 327.6,
+          "area_2023_km2": 334.3,
+          "area_2028_km2": 343.27,
+          "delta_pct_19_23": 2.0
+        },
+        {
+          "classe": "Formação Campestre / Arbustiva",
+          "area_2019_km2": 99.85,
+          "area_2023_km2": 95.25,
+          "area_2028_km2": 85.27,
+          "delta_pct_19_23": -4.6
+        }
+      ],
+      "carbon_potential_table": [
+        {
+          "classe": "Área Antrópica (Emissão)",
+          "area_2019_km2": 40.32,
+          "share_2019_pct": 4.3,
+          "area_2023_km2": 34.59,
+          "share_2023_pct": 3.69,
+          "area_2028_km2": 32.34,
+          "share_2028_pct": 3.45
+        },
+        {
+          "classe": "Baixo Potencial",
+          "area_2019_km2": 257.12,
+          "share_2019_pct": 27.4,
+          "area_2023_km2": 242.54,
+          "share_2023_pct": 25.85,
+          "area_2028_km2": 234.72,
+          "share_2028_pct": 25.02
+        },
+        {
+          "classe": "Moderado Potencial",
+          "area_2019_km2": 437.03,
+          "share_2019_pct": 46.57,
+          "area_2023_km2": 501.98,
+          "share_2023_pct": 53.5,
+          "area_2028_km2": 524.5,
+          "share_2028_pct": 55.92
+        },
+        {
+          "classe": "Alto Potencial",
+          "area_2019_km2": 200.83,
+          "share_2019_pct": 21.4,
+          "area_2023_km2": 157.72,
+          "share_2023_pct": 16.81,
+          "area_2028_km2": 145.21,
+          "share_2028_pct": 15.48
+        },
+        {
+          "classe": "Muito Alto Potencial",
+          "area_2019_km2": 3.14,
+          "share_2019_pct": 0.33,
+          "area_2023_km2": 1.49,
+          "share_2023_pct": 0.16,
+          "area_2028_km2": 1.29,
+          "share_2028_pct": 0.14
+        }
+      ]
+    },
+    "management_recommendations": [
+      "Vigilância e contenção prioritária no anel de 250 m a 1.000 m da represa de Itupararanga, onde se concentram 70.8% da nova expansão urbana periurbana.",
+      "Manejo de bordas e adensamento florestal nos fragmentos de Mata Atlântica para combater o efeito de borda e restabelecer o potencial fotossintético.",
+      "Diferenciação mandatória da silvicultura em protocolos de monitoramento, evitando confundir ciclos de corte/plantio com desmatamento de floresta nativa.",
+      "Adoção de monitoramento funcional periódico (índices espectrais de fluxo de CO2) junto ao mapeamento clássico de cobertura da terra, pois 95.7% da degradação ocorreu sem alteração da classe florestal."
+    ]
+  },
+  "top_5_articles": [
+    {
+      "rank": 1,
+      "type": "Preprint (Versão Pós-Revisão)",
+      "year": "2024",
+      "title": "Carbon Flux Potential Prediction Model Based on Land Cover and Land Use: Application in the Itupararanga Environmental Protection Area, SP, Brazil",
+      "venue": "SSRN (Submetido / Pós-Revisão)",
+      "theme": "Modelagem de Fluxo de Carbono & Mata Atlântica",
+      "tools": "Sentinel-2 (10m), QGIS (MOLUSCE), GEE, MODIS GPP",
+      "key_contribution": "Demonstrou que 95.7% da perda de potencial de carbono ocorreu sem perda de cobertura florestal na APA Itupararanga (-21.5% de áreas de alto potencial)."
+    },
+    {
+      "rank": 2,
+      "type": "Artigo em Periódico",
+      "year": "2023",
+      "title": "The Influence of Land Use and Land Cover on Surface Temperature in a Water Catchment Sub-Basin",
+      "venue": "Sociedade & Natureza, v. 35, e69161",
+      "theme": "Sensoriamento Térmico (LST) & Segurança Hídrica",
+      "tools": "Landsat 5 & 8, QGIS, ArcGIS, MapBiomas",
+      "key_contribution": "Provou que florestas nativas no Cerrado mantêm a temperatura 1.62°C a 2.09°C mais baixa que agropecuária e reduzem perdas por evapotranspiração em manancial crítico."
+    },
+    {
+      "rank": 3,
+      "type": "Artigo em Periódico",
+      "year": "2022",
+      "title": "Análise espacial da distribuição do ensino em função da renda em uma bacia hidrográfica",
+      "venue": "Nativa, v. 10, p. 05-15",
+      "theme": "Geoestatística & Demografia Espacial",
+      "tools": "ArcGIS, Krigagem Ordinária, Estimador Kernel",
+      "key_contribution": "Modelou espacialmente a correlação entre vulnerabilidade socioeconômica e carência educacional na Bacia do Rio Una."
+    },
+    {
+      "rank": 4,
+      "type": "Artigo em Periódico",
+      "year": "2022",
+      "title": "Creation of an environmental sustainability index for water resources applied to watersheds",
+      "venue": "Environment, Development and Sustainability, v. 1, p. 1-21",
+      "theme": "Sustentabilidade Hídrica & Análise Multicritério",
+      "tools": "AHP (Analytic Hierarchy Process), Geoprocessamento",
+      "key_contribution": "Desenvolveu o índice WRSI integrando qualidade da água, saneamento e cobertura vegetal para gestão territorial de bacias."
+    },
+    {
+      "rank": 5,
+      "type": "Artigo em Periódico",
+      "year": "2022",
+      "title": "Reflexos Ambientais do Desenvolvimento e Expansão das Atividades Humanas sobre a Qualidade da Água",
+      "venue": "Revista Brasileira de Geografia Física, v. 15, p. 176-198",
+      "theme": "Qualidade da Água & Expansão Antrópica",
+      "tools": "Geoprocessamento, Análise Espacial de Nutrientes",
+      "key_contribution": "Identificou o enriquecimento por fósforo associado ao avanço agrícola e urbano e seus reflexos na integridade dos mananciais."
+    }
+  ],
+  "commercial_solutions": [
+    {
+      "id": "SOL-01",
+      "title": "Auditoria de Degradação Florestal Funcional Oculta para UCs e Projetos REDD+",
+      "target": "Gestores de UCs (Fundação Florestal, ICMBio), Fundos de Carbono, Empresas de Papel & Celulose.",
+      "value": "Monitoramento de alta resolução (Sentinel-2 10m) que detecta a perda de vigor fotossintético e capacidade de estocagem de carbono DENTRO de florestas que parecem intactas nos mapas tradicionais. Permite intervenção precoce de restauração e precificação com alta integridade técnica de créditos de carbono.",
+      "deliverables": "Relatório de integridade funcional, mapas vetoriais de perda de vigor e séries históricas de fluxo de CO2.",
+      "stack": [
+        "Sentinel-2",
+        "QGIS",
+        "Modelagem sPRI × NDVI",
+        "GEE"
+      ]
+    },
+    {
+      "id": "SOL-02",
+      "title": "Modelagem Preditiva de Cenários de Uso do Solo e Ocupação com Redes Neurais (CA-Markov)",
+      "target": "Prefeituras Municipais, Planos Diretores, Concessionárias de Saneamento e Órgãos de Licenciamento.",
+      "value": "Simulação de cenários futuros de expansão urbana e agrícola (5 a 10 anos à frente) usando redes neurais artificiais MLP e Autômatos Celulares no QGIS (MOLUSCE). Identifica vetores de invasão em mananciais e zonas de amortecimento antes que os danos aconteçam.",
+      "deliverables": "Mapas preditivos de transição, matrizes de probabilidade de mudança de uso e relatório executivo para zoneamento ambiental.",
+      "stack": [
+        "QGIS MOLUSCE",
+        "Redes Neurais MLP",
+        "Cadeias de Markov",
+        "MapBiomas"
+      ]
+    },
+    {
+      "id": "SOL-03",
+      "title": "Implantação de WebSIG e Plataformas Interativas de Inteligência Territorial",
+      "target": "Comitês de Bacia Hidrográfica, Agroindústrias e Secretarias de Meio Ambiente.",
+      "value": "Conversão de bases cartográficas complexas (shapefiles, rasters de satélite, dados de outorga) em plataformas WebSIG interativas de fácil acesso em navegadores, permitindo cruzamento de camadas, consultas de atributos e tomada de decisão ágil.",
+      "deliverables": "Ambiente WebSIG interativo em nuvem, shapefiles padronizados, dashboards de indicadores territoriais.",
+      "stack": [
+        "Streamlit",
+        "Folium",
+        "Leafmap",
+        "GeoJSON",
+        "Python"
+      ]
+    }
+  ],
+  "professional_trajectory": {
+    "postdoc_experience": [
+      {
+        "institution": "ESALQ/USP (2024 - Atual)",
+        "role": "Pesquisador de Pós-Doutorado (Bolsista FAPESP)",
+        "project": "DecisionES-BR: Apoio à Decisão para o Fornecimento de Serviços Ecossistêmicos sob Mudança Global (Cooperação H2020 Marie Curie)",
+        "activities": "Modelagem espacial de serviços ecossistêmicos, otimização de restauração na Mata Atlântica e colaboração em docência de Métodos Quantitativos e Pesquisa Operacional."
+      },
+      {
+        "institution": "Freie Universität Berlin (2023 - 2024)",
+        "role": "Pesquisador Convidado (Sensoriamento Remoto)",
+        "project": "Modelagem e Simulação de Florestas Virtuais e Dados LiDAR",
+        "activities": "Desenvolvimento de algoritmos em ambiente R para simulação de ecossistemas virtuais e nuvens de pontos LiDAR para estimativa de biomassa e estrutura florestal."
+      },
+      {
+        "institution": "UNESP - ICTS Sorocaba (2023 - 2024)",
+        "role": "Pós-Doutorando",
+        "project": "Análise Temporal do Fluxo de Carbono e Modelo de Predição Através de Índices Espectrais (APA Itupararanga)",
+        "activities": "Modelagem espectral sPRI x NDVI e simulação preditiva de cenários futuros."
+      }
+    ],
+    "environmental_consulting": [
+      {
+        "role": "Consultor Ambiental Autônomo (Habilitação FIA / SEMIL)",
+        "period": "2010 - 2012",
+        "scope": "Vistorias de fiscalização de passivos ambientais, análise de cumprimento de Termos de Ajuste de Conduta (TAC) do Ministério Público, fiscalização de Autos de Infração Ambiental (AIA) e acompanhamento de PRADs em colaboração com CETESB."
+      },
+      {
+        "role": "Analista Ambiental (MEDRAL Meio Ambiente)",
+        "period": "2011 - 2012",
+        "scope": "Licenciamento Ambiental completo (LP, LI, LO), relatórios técnicos (EIA/RIMA, RAP, EIV, RAD) em linhas de transmissão de energia e empreendimentos imobiliários; mapeamento de APPs e Reserva Legal em SIG."
+      }
+    ],
+    "university_teaching": [
+      {
+        "institution": "Universidade de Sorocaba (UNISO)",
+        "role": "Professor Adjunto I (2018 - 2021)",
+        "scope": "Docência nos cursos de Engenharia Ambiental, Engenharia Agronômica, Ciências Biológicas e Psicologia em disciplinas como Sistemas de Informações Geográficas (SIG), Cartografia Básica, Ecologia e Recuperação de Áreas Degradadas. Membro do Colegiado de Engenharia Ambiental."
+      },
+      {
+        "institution": "UNESP & ESALQ/USP",
+        "role": "Tutor e Docente Convidado",
+        "scope": "Aulas práticas de geotecnologias, manipulação de imagens de satélite, análise estatística e apoio a turmas de pós-graduação e graduação."
+      }
+    ],
+    "technical_projects": [
+      "Revisão do Plano Diretor e Legislação Urbanística Específica do Município de Rio Grande da Serra/SP (IPT/CTGeo).",
+      "Delimitação das Zonas Potenciais à Contaminação por Nitrato nas Águas Subterrâneas dos Sistemas Aquíferos Bauru e Guarani no Estado de São Paulo (IPT)."
+    ]
+  }
+}
