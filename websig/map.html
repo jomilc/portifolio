@@ -400,12 +400,17 @@
         if (!candidates.includes(href)) candidates.push(href);
       } catch (e) { /* base indisponível */ }
     };
+    // site estático (GitHub Pages): o mapa é servido de /websig/ e as camadas de /static/websig/
+    add("../static/websig/", document.baseURI);
+    // app Streamlit: as camadas saem sob app/static/
     add("app/static/websig/", document.baseURI);
     try { add("app/static/websig/", window.parent.location.href); } catch (e) { /* cross-origin */ }
     add("/app/static/websig/", document.baseURI);
     for (const base of candidates) {
       try {
         const res = await fetch(base + "manifest.json", { cache: "no-cache" });
+        // um 200 com HTML (página de fallback do servidor) não serve: o parse abaixo falha
+        // e o laço segue para o próximo candidato
         if (res.ok) return { base, manifest: await res.json() };
       } catch (e) { /* tenta o próximo */ }
     }
