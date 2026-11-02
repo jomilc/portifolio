@@ -572,7 +572,8 @@ def painel_forest_lab():
   <a class="btn" href="https://zenodo.org/uploads/23859145" target="_blank" rel="noopener">Registro no Zenodo</a>
   <a class="btn" href="https://github.com/jomilc/forest-growth-simulator" target="_blank"
      rel="noopener">Código-fonte no GitHub</a>
-  <a class="btn" href="forest_lab/README.md" target="_blank" rel="noopener">Documentação técnica</a>
+  <a class="btn" href="https://github.com/jomilc/forest-growth-simulator/blob/main/README.md"
+     target="_blank" rel="noopener">Documentação técnica</a>
 </div>
 
 <div class="flab-palco" id="flab-palco">
