@@ -1214,8 +1214,10 @@ a{color:#15803D;}
 .links a:hover{color:#15803D;}
 .links svg{margin-right:8px;flex-shrink:0;}
 
-.hero-magazine{background:linear-gradient(rgba(14,43,23,.72),rgba(14,43,23,.72)),
-               url('https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+.hero-faixa{border-radius:12px;overflow:hidden;margin-bottom:.8rem;
+            box-shadow:0 4px 15px rgba(0,0,0,.08);background:#1E293B;}
+.hero-faixa img{display:block;width:100%;height:auto;aspect-ratio:2000/496;object-fit:cover;}
+.hero-magazine{background:linear-gradient(135deg,#0E2B17 0%,#14532D 55%,#166534 100%);
                border-radius:12px;padding:1.6rem 2.2rem;margin-bottom:1.4rem;
                box-shadow:0 4px 15px rgba(0,0,0,.08);border-left:6px solid #16A34A;}
 .hero-row{display:flex;align-items:center;flex-wrap:wrap;gap:20px;}
@@ -1570,6 +1572,7 @@ a{color:#15803D;}
   .tl-mark{display:none;}
   .tl-when{text-align:left;padding:0 0 .2rem .1rem;}
   .traj-hero h2{font-size:1.4rem;}
+  .hero-faixa img{aspect-ratio:auto;height:118px;}
 }
 """
 
@@ -2174,7 +2177,7 @@ def construir():
       </div>
       <div style="font-size:.78rem;color:#475569;line-height:1.35;border-top:1px solid #F1F5F9;padding-top:.5rem;">
         <b>Biólogo | Pós-Doutor em Ciências Florestais (ESALQ/USP)</b><br>
-        Doutor em Ciências Ambientais (UNESP / TU Berlin)<br>
+        Doutor em Ciências Ambientais<br>
         <span style="color:#15803D;font-weight:700;">Geotecnologias, Sensoriamento Remoto &amp; IA</span>
       </div>
     </div>
@@ -2185,6 +2188,10 @@ def construir():
   </aside>
 
   <main class="main">
+    <div class="hero-faixa">
+      <img src="static/capa.jpg" alt="Relevo representado por curvas de nível sobre uma nuvem de pontos,
+           em tons de verde e azul — leitura topográfica por sensoriamento remoto" />
+    </div>
     <div class="hero-magazine">
       <div class="hero-row">
         <img class="hero-photo" src="{esc(foto)}" alt="" />
