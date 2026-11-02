@@ -568,8 +568,10 @@ def painel_forest_lab():
 
 <div class="flab-acoes">
   <button class="btn btn-primary" data-fullscreen="flab-palco">⛶ Ver em tela cheia</button>
-  <a class="btn" href="forest_lab/forest_lab.html" target="_blank" rel="noopener">↗ Abrir em nova aba</a>
-  <a class="btn" href="https://zenodo.org/uploads/23859145" target="_blank" rel="noopener">Registro no Zenodo</a>
+  <button class="btn" data-amplo="1">⤢ Modo amplo</button>
+  <a class="btn" href="forest_lab/" target="_blank" rel="noopener">↗ Abrir só o simulador</a>
+  <a class="btn" href="https://doi.org/10.5281/zenodo.23859145" target="_blank"
+     rel="noopener">Registro no Zenodo</a>
   <a class="btn" href="https://github.com/jomilc/forest-growth-simulator" target="_blank"
      rel="noopener">Código-fonte no GitHub</a>
   <a class="btn" href="https://github.com/jomilc/forest-growth-simulator/blob/main/README.md"
@@ -577,14 +579,16 @@ def painel_forest_lab():
 </div>
 
 <div class="flab-palco" id="flab-palco">
-  <iframe class="flab-frame" src="forest_lab/forest_lab.html" loading="lazy" allowfullscreen
+  <iframe class="flab-frame" src="forest_lab/" loading="lazy" allowfullscreen
           title="Forest Lab — simulador interativo de sucessão florestal"></iframe>
 </div>
 <p class="caption">O simulador é interativo: arraste para girar a câmera, use a roda do mouse para aproximar
    e a barra inferior para percorrer os 1.000 anos. Toda a simulação roda localmente, no seu computador —
    nenhum dado é coletado ou enviado. A primeira carga busca three.js e Tailwind em CDN público e exige
    WebGL; o cálculo completo da história de 1.000 anos leva cerca de 0,6–0,7 s. O botão <b>❓ Ajuda</b>
-   dentro do simulador traz o guia completo, e o tópico 7 lista todas as referências.</p>
+   dentro do simulador traz o guia completo, e o tópico 7 lista todas as referências.
+   Para abrir apenas o simulador, sem o portfólio em volta, use
+   <a href="forest_lab/" target="_blank" rel="noopener"><b>jomilc.github.io/portifolio/forest_lab/</b></a>.</p>
 
 <div class="rule">
   <h4 class="h-serif">O que o simulador faz</h4>
@@ -1458,10 +1462,21 @@ a{color:#15803D;}
                   border:1px solid rgba(187,247,208,.38);border-radius:20px;padding:.22rem .65rem;}
 .flab-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.9rem;}
 .flab-palco{background:#060D08;border:1.5px solid #14532D;border-radius:12px;padding:5px;
-            box-shadow:0 6px 20px rgba(6,32,16,.18);}
-.flab-palco:fullscreen{padding:0;border:none;border-radius:0;}
+            box-shadow:0 6px 20px rgba(6,32,16,.18);
+            margin-left:-2rem;margin-right:-2rem;}
+.flab-palco:fullscreen{padding:0;border:none;border-radius:0;margin:0;}
 .flab-palco:fullscreen .flab-frame{height:100vh;border-radius:0;}
-.flab-frame{display:block;width:100%;height:820px;border:none;border-radius:8px;background:#0B1220;}
+.flab-frame{display:block;width:100%;height:min(88vh,1040px);min-height:620px;border:none;
+            border-radius:8px;background:#0B1220;}
+html.flab-amplo .sidebar{display:none;}
+html.flab-amplo .shell{max-width:none;}
+html.flab-amplo .main{padding-left:0;padding-right:0;}
+html.flab-amplo .flab-hero,html.flab-amplo .flab-acoes,html.flab-amplo .banner,
+html.flab-amplo .tabs,html.flab-amplo .caption,html.flab-amplo .rule,
+html.flab-amplo .cite-card{margin-left:1rem;margin-right:1rem;}
+html.flab-amplo .flab-palco{margin-left:0;margin-right:0;border-radius:0;
+                            border-left:none;border-right:none;}
+html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-radius:0;}
 .flab-galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;
               margin-top:.5rem;}
 .flab-shot{margin:0;background:#FFF;border:1.5px solid #CBD5E1;border-radius:10px;overflow:hidden;
@@ -1480,7 +1495,8 @@ a{color:#15803D;}
   .hero-magazine{padding:1.2rem 1.2rem;}
   .fig-nav{grid-template-columns:1fr;}
   .sig-frame{height:600px;}
-  .flab-frame{height:640px;}
+  .flab-frame{height:min(80vh,640px);}
+  .flab-palco{margin-left:-1rem;margin-right:-1rem;}
   .flab-hero h3{font-size:1.2rem;}
 }
 @media (max-width:640px){
@@ -1489,7 +1505,7 @@ a{color:#15803D;}
   .tl-mark{display:none;}
   .tl-when{text-align:left;padding:0 0 .2rem .1rem;}
   .traj-hero h2{font-size:1.4rem;}
-  .flab-frame{height:560px;}
+  .flab-frame{height:min(78vh,560px);}
 }
 """
 
@@ -1560,7 +1576,16 @@ JS = """
       return;
     }
 
-    var tela = ev.target.closest('[data-fullscreen]');
+    var amplo = ev.target.closest('[data-amplo]');
+    if (amplo){
+      var ligado = document.documentElement.classList.toggle('flab-amplo');
+      amplo.textContent = ligado ? '⤡ Sair do modo amplo' : '⤢ Modo amplo';
+      amplo.classList.toggle('btn-primary', ligado);
+      document.querySelector('.flab-acoes').scrollIntoView({block: 'start'});
+      return;
+    }
+
+
     if (tela){
       var palco = document.getElementById(tela.dataset.fullscreen);
       if (palco){
