@@ -27,7 +27,7 @@ PORTFOLIO_DB = {
       "researchgate": "https://www.researchgate.net/profile/Jomil-Sales",
       "ssrn": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7268395",
       "email": "jomil.sales@usp.br",
-      "linkedin": "https://www.linkedin.com/in/jomil-costa-phd-53817838/"
+      "linkedin": "https://www.linkedin.com/in/jomil-costa/"
     },
     "stats": {
       "published_articles": 25,
@@ -919,7 +919,7 @@ with st.sidebar:
     st.markdown("""
     <div style="background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; padding: 0.7rem 0.9rem;">
         <!-- LinkedIn -->
-        <a href="https://www.linkedin.com/in/jomil-costa-phd-53817838/" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; padding: 0.35rem 0; color: #334155; text-decoration: none; font-size: 0.82rem; font-weight: 600; border-bottom: 1px solid #F1F5F9;">
+        <a href="https://www.linkedin.com/in/jomil-costa/" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; padding: 0.35rem 0; color: #334155; text-decoration: none; font-size: 0.82rem; font-weight: 600; border-bottom: 1px solid #F1F5F9;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#0A66C2" style="margin-right: 8px; flex-shrink: 0;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.65 1.65 0 1 0-.02-3.3 1.65 1.65 0 0 0 .02 3.3m1.4 9.74V9.93H5.06v8.57h2.8z"/></svg>
             LinkedIn Perfil
         </a>
@@ -1829,11 +1829,11 @@ elif selected_section in ["Consultoria Ambiental & Tutoria em SIG", "Consultoria
         - **E-mail Institucional:** `jomil.sales@usp.br`
         - **E-mail Profissional:** `jomilc@gmail.com`
         - **Registro Profissional:** Biólogo CRBio nº 68816/01-D
-        - **LinkedIn:** [Perfil Profissional](https://www.linkedin.com/in/jomil-costa-phd-53817838/)
+        - **LinkedIn:** [Perfil Profissional](https://www.linkedin.com/in/jomil-costa/)
         """)
     with col_c2:
         st.link_button("Enviar Mensagem por E-mail", "mailto:jomil.sales@usp.br?subject=Solicitação de Consultoria / Aulas em SIG", use_container_width=True)
-        st.link_button("Acessar Perfil no LinkedIn", "https://www.linkedin.com/in/jomil-costa-phd-53817838/", use_container_width=True)
+        st.link_button("Acessar Perfil no LinkedIn", "https://www.linkedin.com/in/jomil-costa/", use_container_width=True)
 
 
 
