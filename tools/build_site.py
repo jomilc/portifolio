@@ -29,7 +29,15 @@ MANIFESTO = os.path.join(RAIZ, "static", "websig", "manifest.json")
 
 # Codigo do site no GoatCounter (o subdominio da conta). Vazio = medicao desligada:
 # a secao de estatisticas continua funcionando, mostrando so os dados locais.
-GOATCOUNTER = ""
+GOATCOUNTER = "jomilc"
+
+# Versao fixa do count.js e a sua impressao digital. Preso a uma versao, o
+# navegador recusa o arquivo se ele mudar um byte sequer, o que fecha a porta
+# de um script de terceiro ser alterado depois da nossa conferencia. Em troca
+# nao ha atualizacao automatica: para subir de versao, trocar as duas linhas
+# juntas, conferindo o par em goatcounter.com/help/countjs-versions.
+COUNTJS_ARQUIVO = "//gc.zgo.at/count.v5.js"
+COUNTJS_HASH = "sha384-atnOLvQb9t+jTSipvd75X2yginT4PjVbqDdlJAmxMm+wYElFmeR6EmLP5bYeoRVQ"
 
 STATUS_CORES = {
     "destaque": ("#15803D", "#DCFCE7", "#BBF7D0"),
@@ -1971,7 +1979,8 @@ def script_medicao():
     if not GOATCOUNTER:
         return "<!-- medicao desligada: defina GOATCOUNTER em tools/build_site.py -->"
     return ('<script data-goatcounter="https://{0}.goatcounter.com/count" '
-            'async src="//gc.zgo.at/count.js"></script>').format(GOATCOUNTER)
+            'async src="{1}" crossorigin="anonymous" '
+            'integrity="{2}"></script>').format(GOATCOUNTER, COUNTJS_ARQUIVO, COUNTJS_HASH)
 
 
 def bloco_compartilhar(titulo="Compartilhe este portfólio", nota=True):
