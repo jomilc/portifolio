@@ -479,7 +479,7 @@ def secao_websig():
 
 
 def painel_forest_lab():
-    """Item 1 da secao de IA: o simulador Forest Lab embutido e documentado."""
+    """Item 1 da secao de IA: o video do Forest Lab, o link para o simulador e a documentacao."""
     grupos = [
         ("1", "Pioneiras (gramíneas, <i>Cecropia</i>, <i>Trema</i>)", "ano 0 (banco de sementes)",
          "≥ 28%", "15–35", "20", "0,35"),
