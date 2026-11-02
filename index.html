@@ -1276,6 +1276,44 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
     });
   }
 
+  // O Forest Lab mantem dois canvas sobrepostos: o cenario de fundo (2D) e o
+  // render 3D. Ele so os redimensiona no evento 'resize' da propria janela, e o
+  // fundo le window.innerWidth/innerHeight enquanto o render le o tamanho do
+  // contedor. Dentro de um iframe a caixa muda sem que esse evento ocorra --
+  // ao exibir a secao, ao trocar de aba, ao sair da tela cheia -- e os dois
+  // canvas ficam de tamanhos diferentes, o que deixa uma borda vertical visivel
+  // e corta parte da cena. Avisamos o iframe sempre que a sua caixa mudar.
+  function sincronizarSimulador(){
+    var quadro = document.querySelector('.flab-frame');
+    if (!quadro) return;
+    try {
+      var janela = quadro.contentWindow;
+      if (janela && janela.document.readyState !== 'loading'){
+        janela.dispatchEvent(new janela.Event('resize'));
+      }
+    } catch (e) { /* outra origem: nada a fazer */ }
+  }
+
+  var sincPendente = null;
+  function agendarSincronia(){
+    clearTimeout(sincPendente);
+    sincPendente = setTimeout(sincronizarSimulador, 160);
+  }
+
+  (function observarSimulador(){
+    var quadro = document.querySelector('.flab-frame');
+    if (!quadro) return;
+    quadro.addEventListener('load', agendarSincronia);
+    // o ResizeObserver cobre o redimensionamento da janela; os cliques de secao,
+    // aba, modo amplo e tela cheia chamam agendarSincronia() diretamente, porque
+    // o observador so entrega avisos no fim de um quadro de renderizacao.
+    if (typeof ResizeObserver === 'function'){
+      new ResizeObserver(agendarSincronia).observe(quadro);
+    }
+    window.addEventListener('resize', agendarSincronia);
+    document.addEventListener('fullscreenchange', agendarSincronia);
+  })();
+
   // ------------------------------------------------------------- medicao
   // Camada de medicao anonima. Sem cookies: o GoatCounter nao usa nenhum, e o
   // que fica no localStorage serve so para o painel "Esta visita" deste aparelho.
@@ -1487,6 +1525,7 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
       history.pushState({sec: alvo}, '', '#' + alvo);
     }
     despertar(document.querySelector('.sec.on'));
+    if (alvo === 'ia') agendarSincronia();
     medir('/secao/' + alvo, 'Seção: ' + alvo);
     if (alvo === 'estatisticas') carregarPainel();
     window.scrollTo({top: 0, behavior: 'smooth'});
@@ -1524,6 +1563,7 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
         p.classList.toggle('on', p.dataset.i === i);
       });
       despertar(document.querySelector('.tabpane[data-tabs="' + grupo + '"].on'));
+      if (grupo === 'ia') agendarSincronia();
       medir('aba-' + grupo + '-' + i, 'Aba ' + grupo + ' n' + i, true);
       return;
     }
@@ -1571,6 +1611,7 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
     var amplo = ev.target.closest('[data-amplo]');
     if (amplo){
       var ligado = document.documentElement.classList.toggle('flab-amplo');
+      agendarSincronia();
       if (ligado) medir('simulador-modo-amplo', 'Forest Lab: modo amplo', true);
       amplo.textContent = ligado ? '⤡ Sair do modo amplo' : '⤢ Modo amplo';
       amplo.classList.toggle('btn-primary', ligado);
@@ -1581,6 +1622,7 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
     var tela = ev.target.closest('[data-fullscreen]');
     if (tela){
       medir('simulador-tela-cheia', 'Forest Lab: tela cheia', true);
+      agendarSincronia();
       var palco = document.getElementById(tela.dataset.fullscreen);
       if (palco){
         if (document.fullscreenElement) document.exitFullscreen();
