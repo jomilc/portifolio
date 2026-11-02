@@ -297,10 +297,10 @@
           <span class="text-[8px] font-mono text-amber-400">CH-B</span>
         </div>
         <div class="retro-well flex flex-col items-stretch">
-          <button id="btn-gap-tool" class="retro-btn px-2.5 py-1.5 text-xs font-bold flex items-center gap-2 w-full text-left" title="Ativar modo interativo: clique em uma árvore Emergente para abrir uma clareira">
-            <span id="led-gap" class="retro-led"></span>
-            <svg class="w-4 h-4 stroke-current text-teal-300 shrink-0" fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
-            <span id="lbl-gap-btn">Criar Clareira</span>
+          <button id="btn-river-trigger" class="retro-btn px-2.5 py-1.5 text-xs font-bold flex items-center gap-2 w-full text-left" title="Ativar Rio Sinuoso (Mata Ciliar): efeito de borda natural de baixo impacto (-7% biomassa)">
+            <span id="led-river" class="retro-led"></span>
+            <svg class="w-4 h-4 stroke-current text-sky-300 shrink-0" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M2 9c3-2 6 2 9 0s6-2 11 0M2 15c3-2 6 2 9 0s6-2 11 0"/></svg>
+            <span id="lbl-river-btn">Rio Sinuoso</span>
           </button>
 
           <button id="btn-rain-trigger" class="retro-btn px-2.5 py-1.5 text-xs font-bold flex items-center gap-2 w-full text-left" title="Pulso de Pluviosidade (6 segundos): ativa chuva sobre a floresta e impulsiona a barra e o crescimento das árvores">
@@ -309,10 +309,10 @@
             <span id="lbl-rain-btn">Pluviosidade (6s)</span>
           </button>
 
-          <button id="btn-river-trigger" class="retro-btn px-2.5 py-1.5 text-xs font-bold flex items-center gap-2 w-full text-left" title="Ativar Rio Sinuoso (Mata Ciliar): efeito de borda natural de baixo impacto (-7% biomassa)">
-            <span id="led-river" class="retro-led"></span>
-            <svg class="w-4 h-4 stroke-current text-sky-300 shrink-0" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M2 9c3-2 6 2 9 0s6-2 11 0M2 15c3-2 6 2 9 0s6-2 11 0"/></svg>
-            <span id="lbl-river-btn">Rio Sinuoso</span>
+          <button id="btn-gap-tool" class="retro-btn px-2.5 py-1.5 text-xs font-bold flex items-center gap-2 w-full text-left" title="Ativar modo interativo: clique em uma árvore Emergente para abrir uma clareira">
+            <span id="led-gap" class="retro-led"></span>
+            <svg class="w-4 h-4 stroke-current text-teal-300 shrink-0" fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>
+            <span id="lbl-gap-btn">Criar Clareira</span>
           </button>
 
           <button id="btn-agri-trigger" class="retro-btn px-2.5 py-1.5 text-xs font-bold flex items-center gap-2 w-full text-left" title="Ativar Vinhedo / Agricultura na borda oeste (-24% efeito de borda)">
@@ -4315,7 +4315,7 @@
         items: ['stratum-all', 'stratum-canopy', 'stratum-understory'] },
       { key: 'land', pt: 'Dinâmica e usos do solo', en: 'Dynamics & land use',
         icon: M_SVG('<path d="M5 21c0-9 6-15 15-16-1 9-7 15-15 16z"/><path d="M5 21l8-8"/>'),
-        items: ['btn-gap-tool', 'btn-rain-trigger', 'btn-river-trigger', 'btn-agri-trigger', 'btn-urban-trigger'] },
+        items: ['btn-river-trigger', 'btn-rain-trigger', 'btn-gap-tool', 'btn-agri-trigger', 'btn-urban-trigger'] },
       { key: 'sensor', pt: 'Sensor: 3D ou LiDAR', en: 'Sensor: 3D or LiDAR', iconFrom: 'btn-mode-lidar',
         items: ['btn-mode-mesh', 'btn-mode-lidar'] },
       { key: 'cams', pt: 'Câmeras', en: 'Cameras',
