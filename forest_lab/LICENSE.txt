@@ -1,0 +1,66 @@
+Forest Lab: Forest growth, ecological succession and anthropogenic interference
+Version 1.0.0
+
+Copyright (c) 2026 Jomil Costa Abreu Sales (Sales, J.; C.; A.)
+ORCID: https://orcid.org/0000-0001-8722-8398
+
+ALL RIGHTS RESERVED.
+
+This software, including its source code, simulation model, graphics, texts, user
+interface and documentation (together, "the Work"), is protected by copyright law,
+including Brazilian Law No. 9,609/1998 (software) and Law No. 9,610/1998 (copyright),
+and by the Berne Convention.
+
+1. PERMITTED USES
+
+Without further permission, you may:
+
+  a) download, open and run the Work for personal, educational or non-commercial
+     research purposes;
+  b) show the Work in classes, lectures and academic presentations, provided the
+     author is credited;
+  c) cite and refer to the Work in publications, provided the full citation below
+     is given;
+  d) share the Zenodo record link or DOI of the Work.
+
+2. PROHIBITED USES WITHOUT PRIOR WRITTEN PERMISSION FROM THE AUTHOR
+
+  a) modifying, adapting, translating or creating derivative works from the Work
+     or from any part of its source code;
+  b) redistributing, re-uploading, mirroring or publicly hosting copies of the Work,
+     modified or not, except by sharing the official Zenodo record link or DOI;
+  c) any commercial use, including sale, licensing, paid courses or products, and
+     inclusion in commercial software or services;
+  d) removing or altering copyright notices, the author's name, the citation or
+     the DOI;
+  e) presenting the Work, or a substantial part of it, as the work of another person.
+
+3. REQUIRED CITATION
+
+SALES, J.; C.; A. Forest Lab: Forest growth, ecological succession and anthropogenic
+interference. Version 1.0.0. Zenodo, 2026. DOI: 10.5281/zenodo.23859145.
+Available at: https://orcid.org/0000-0001-8722-8398.
+
+4. THIRD-PARTY COMPONENTS
+
+The Work loads the following third-party libraries at run time. They are not owned
+by the author and remain under their own licenses:
+
+  - three.js r128, MIT License, https://threejs.org
+  - Tailwind CSS 3.4.17, MIT License, https://tailwindcss.com
+
+The cited scientific literature and HELIOS++ are referenced for scientific grounding
+only. No code from HELIOS++ is included in the Work.
+
+5. NO WARRANTY
+
+The Work is provided "as is", without warranty of any kind. It is an educational and
+exploratory model. Its outputs are not measurements of any real forest and must not
+be used as the sole basis for management, legal or financial decisions. The author is
+not liable for any damage arising from its use.
+
+6. PERMISSIONS AND CONTACT
+
+To request permissions beyond those in section 1, contact the author:
+  ORCID:    https://orcid.org/0000-0001-8722-8398
+  LinkedIn: https://www.linkedin.com/in/jomil-costa/

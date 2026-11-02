@@ -306,6 +306,35 @@ a{color:#15803D;}
 .rodape{text-align:center;font-size:.78rem;color:#64748B;padding:1.2rem 0;margin-top:2rem;
         border-top:1px solid #E2E8F0;line-height:1.6;}
 
+.flab-hero{border-radius:12px;overflow:hidden;margin-bottom:1rem;border-left:6px solid #16A34A;
+           box-shadow:0 4px 16px rgba(0,0,0,.10);
+           background-image:linear-gradient(rgba(6,32,16,.80),rgba(6,32,16,.90)),
+             url('static/forest_lab/01_floresta_3d.jpg');
+           background-size:cover;background-position:center 60%;}
+.flab-hero-in{padding:1.5rem 1.8rem;}
+.flab-kicker{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.12em;
+             text-transform:uppercase;color:#BBF7D0;border:1px solid rgba(187,247,208,.5);
+             border-radius:4px;padding:.18rem .55rem;margin-bottom:.6rem;}
+.flab-hero h3{font-family:Merriweather,serif;color:#FFF;font-size:1.5rem;margin:0 0 .5rem 0;
+              line-height:1.25;letter-spacing:-.01em;}
+.flab-hero p{color:#E2E8F0;font-size:.95rem;margin:0;max-width:860px;line-height:1.55;}
+.flab-badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:.9rem;}
+.flab-badges span{font-size:.73rem;font-weight:700;color:#DCFCE7;background:rgba(21,128,61,.45);
+                  border:1px solid rgba(187,247,208,.38);border-radius:20px;padding:.22rem .65rem;}
+.flab-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.9rem;}
+.flab-palco{background:#060D08;border:1.5px solid #14532D;border-radius:12px;padding:5px;
+            box-shadow:0 6px 20px rgba(6,32,16,.18);}
+.flab-palco:fullscreen{padding:0;border:none;border-radius:0;}
+.flab-palco:fullscreen .flab-frame{height:100vh;border-radius:0;}
+.flab-frame{display:block;width:100%;height:820px;border:none;border-radius:8px;background:#0B1220;}
+.flab-galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;
+              margin-top:.5rem;}
+.flab-shot{margin:0;background:#FFF;border:1.5px solid #CBD5E1;border-radius:10px;overflow:hidden;
+           box-shadow:0 2px 6px rgba(0,0,0,.04);}
+.flab-shot img{display:block;width:100%;height:auto;background:#0B1220;}
+.flab-shot figcaption{font-size:.82rem;color:#475569;line-height:1.5;padding:.7rem .9rem;}
+.flab-shot figcaption b{color:#0F172A;}
+
 @media (max-width:980px){
   .shell{flex-direction:column;}
   .sidebar{width:100%;flex:none;position:static;max-height:none;min-height:0;
@@ -316,6 +345,8 @@ a{color:#15803D;}
   .hero-magazine{padding:1.2rem 1.2rem;}
   .fig-nav{grid-template-columns:1fr;}
   .sig-frame{height:600px;}
+  .flab-frame{height:640px;}
+  .flab-hero h3{font-size:1.2rem;}
 }
 @media (max-width:640px){
   .tl::before{display:none;}
@@ -323,6 +354,7 @@ a{color:#15803D;}
   .tl-mark{display:none;}
   .tl-when{text-align:left;padding:0 0 .2rem .1rem;}
   .traj-hero h2{font-size:1.4rem;}
+  .flab-frame{height:560px;}
 }
 </style>
 </head>
@@ -710,9 +742,223 @@ a{color:#15803D;}
 <div class="banner" style="border-left-color:#4F46E5;">
   <h2>🤖 Criações com Inteligência Artificial &amp; Produtos Tecnológicos</h2>
   <p>Desenvolvimento de agentes conversacionais inteligentes, modelagem preditiva com redes neurais
-     artificiais, algoritmos multicritério com lógica difusa e automação de sensoriamento remoto em nuvem.</p>
+     artificiais, algoritmos multicritério com lógica difusa e automação de sensoriamento remoto em nuvem, além do simulador 3D de
+     sucessão florestal Forest Lab, que roda interativamente dentro desta página.</p>
 </div>
-<div class="tabs" role="tablist"><button class="tab on" data-tabs="ia" data-i="0">🧠 1. Agentes RAG Científicos</button><button class="tab" data-tabs="ia" data-i="1">🔮 2. Redes Neurais &amp; MOLUSCE</button><button class="tab" data-tabs="ia" data-i="2">⚖️ 3. Decisão Difusa &amp; OWA</button><button class="tab" data-tabs="ia" data-i="3">🛰️ 4. Pipelines GEE &amp; Python</button><button class="tab" data-tabs="ia" data-i="4">💡 5. Meus Produtos &amp; Projetos</button></div><div class="tabbody"><div class="tabpane on" data-tabs="ia" data-i="0">
+<div class="tabs" role="tablist"><button class="tab on" data-tabs="ia" data-i="0">🌳 1. Forest Lab — Simulador 3D</button><button class="tab" data-tabs="ia" data-i="1">🧠 2. Agentes RAG Científicos</button><button class="tab" data-tabs="ia" data-i="2">🔮 3. Redes Neurais &amp; MOLUSCE</button><button class="tab" data-tabs="ia" data-i="3">⚖️ 4. Decisão Difusa &amp; OWA</button><button class="tab" data-tabs="ia" data-i="4">🛰️ 5. Pipelines GEE &amp; Python</button><button class="tab" data-tabs="ia" data-i="5">💡 6. Meus Produtos &amp; Projetos</button></div><div class="tabbody"><div class="tabpane on" data-tabs="ia" data-i="0">
+<div class="flab-hero">
+  <div class="flab-hero-in">
+    <span class="flab-kicker">Produto autoral · Versão 1.0.0 · 2026</span>
+    <h3>🌳 Forest Lab — Simulador 3D de Crescimento Florestal, Sucessão Ecológica e Interferência Antrópica</h3>
+    <p>Mil anos de sucessão florestal tropical em 100 hectares (1.000 m × 1.000 m), calculados e desenhados
+       em tempo real dentro do navegador. O simulador compara uma borda ripária natural com duas bordas
+       antrópicas — vinhedo/agricultura e expansão urbana — e permite explorar a estrutura da floresta com
+       uma nuvem de pontos LiDAR aerotransportada emulada.</p>
+    <div class="flab-badges">
+      <span>DOI 10.5281/zenodo.23859145</span><span>three.js r128 · WebGL</span>
+      <span>Interface PT-BR / EN</span><span>~420 mil retornos LiDAR</span>
+      <span>Roda offline após a 1ª carga</span>
+    </div>
+  </div>
+</div>
+
+<div class="flab-acoes">
+  <button class="btn btn-primary" data-fullscreen="flab-palco">⛶ Ver em tela cheia</button>
+  <a class="btn" href="forest_lab/forest_lab.html" target="_blank" rel="noopener">↗ Abrir em nova aba</a>
+  <a class="btn" href="https://zenodo.org/uploads/23859145" target="_blank" rel="noopener">Registro no Zenodo</a>
+  <a class="btn" href="https://github.com/jomilc/forest-growth-simulator" target="_blank"
+     rel="noopener">Código-fonte no GitHub</a>
+  <a class="btn" href="forest_lab/README.md" target="_blank" rel="noopener">Documentação técnica</a>
+</div>
+
+<div class="flab-palco" id="flab-palco">
+  <iframe class="flab-frame" src="forest_lab/forest_lab.html" loading="lazy" allowfullscreen
+          title="Forest Lab — simulador interativo de sucessão florestal"></iframe>
+</div>
+<p class="caption">O simulador é interativo: arraste para girar a câmera, use a roda do mouse para aproximar
+   e a barra inferior para percorrer os 1.000 anos. Toda a simulação roda localmente, no seu computador —
+   nenhum dado é coletado ou enviado. A primeira carga busca three.js e Tailwind em CDN público e exige
+   WebGL; o cálculo completo da história de 1.000 anos leva cerca de 0,6–0,7 s. O botão <b>❓ Ajuda</b>
+   dentro do simulador traz o guia completo, e o tópico 7 lista todas as referências.</p>
+
+<div class="rule">
+  <h4 class="h-serif">O que o simulador faz</h4>
+  <p class="sub">Um modelo de clareira baseado em indivíduos e dirigido pela luz, no espírito do JABOWA
+     (Botkin et al., 1972) e do FORMIND (Köhler &amp; Huth, 1998). Os 3.300 pontos da paisagem são sítios,
+     e cada sítio é ocupado por gerações sucessivas de qualquer grupo funcional.</p>
+  <div class="split">
+    <div class="notes"><ul>
+      <li><b>Cinco fases de sucessão (anos 0–1.000):</b> gramíneas rasteiras iniciais (0–3); expansão
+          herbácea e pioneira (3–15); floresta secundária e sub-bosque (15–60); floresta secundária
+          tardia/clímax (60–150); floresta madura com megaárvores emergentes (150+).</li>
+      <li><b>Sete grupos funcionais</b> que se substituem conforme a luz que chega a cada sítio. Árvores
+          mortas não voltam: o sítio é recolonizado por plantas novas, na ordem sucessional.</li>
+      <li><b>Efeitos de borda:</b> rio meandrante com mata de galeria (borda natural, cerca de −7% de
+          biomassa); vinhedo/agricultura a oeste (cerca de −24% na zona de contato); expansão urbana a leste
+          (cerca de −48% na zona de contato). As bordas reduzem o crescimento e elevam a mortalidade de
+          árvores grandes (Laurance et al., 2002).</li>
+      <li><b>Dinâmica de clareiras:</b> quedas naturais de árvores grandes esmagam vizinhas menores e abrem o
+          dossel. Há ainda uma ferramenta para abrir uma clareira numa emergente e acompanhar a recuperação —
+          ao derrubar a árvore, um bando de araras-azuis e vermelhas abandona a copa, lembrete visual da
+          perda de hábitat e biodiversidade.</li>
+      <li><b>Detalhe da zona urbana:</b> ao ligar a expansão urbana, a cidade sobe em animação, com malha
+          viária e faixas de pedestres, edifícios com janelas acesas, casas de telhado de duas águas e uma
+          fábrica cuja fumaça deriva com o vento. São elementos visuais; o cálculo do efeito de borda é o
+          mesmo.</li>
+      <li><b>Modo Nuvem LiDAR:</b> varredura aerotransportada emulada de alta densidade (cerca de 420.000
+          retornos), colorível por espécie e fuste, por altura (Z) ou por solo/vegetação. É uma emulação
+          simplificada em navegador, inspirada na abordagem de varredura a laser virtual do HELIOS++
+          (Winiwarter et al., 2022) — não executa o HELIOS++.</li>
+    </ul></div>
+    <div class="aside">
+      <b style="color:#15803D;font-size:.92rem;">Variáveis de controle</b>
+      <ul><li>Precipitação</li><li>Fertilidade do solo</li><li>Taxa de clareiras</li>
+          <li>Densidade foliar</li>
+          <li>Pulso de chuva de 6 s, com formação de nuvens e ganho modesto de crescimento</li></ul>
+      <b style="color:#15803D;font-size:.92rem;display:block;margin-top:.9rem;">Métricas e gráficos</b>
+      <ul><li>Evolução de cada grupo ao longo de 1.000 anos</li>
+          <li>Crescimento diamétrico (cm/ano) e mortalidade (%/ano) por grupo, com média móvel de 15 anos</li>
+          <li>Cobertura de dossel, a partir do modelo de luz</li>
+          <li>Perfil vertical LiDAR e altura máxima</li>
+          <li>Biomassa acima do solo (AGB, Mg/ha) pela alometria pantropical de Chave et al. (2014)</li></ul>
+      <b style="color:#15803D;font-size:.92rem;display:block;margin-top:.9rem;">Câmeras predefinidas</b>
+      <ul><li>Isométrica, nadir (ALS), borda urbana, borda rural, corredor ripário e sub-bosque</li></ul>
+    </div>
+  </div>
+</div>
+
+<div class="rule">
+  <h4 class="h-serif">Registros da simulação</h4>
+  <p class="sub">Capturas da versão 1.0.0, depositada no Zenodo.</p>
+  <div class="flab-galeria"><figure class="flab-shot"><img src="static/forest_lab/01_floresta_3d.jpg" loading="lazy" alt="Floresta 3D no ano 150" width="1400" height="787"><figcaption><b>Floresta 3D no ano 150.</b> Dossel fechado de floresta secundária tardia com o corredor ripário serpenteando a paisagem.</figcaption></figure><figure class="flab-shot"><img src="static/forest_lab/02_lidar.jpg" loading="lazy" alt="Modo Nuvem LiDAR no ano 150" width="1400" height="787"><figcaption><b>Modo Nuvem LiDAR no ano 150.</b> Varredura aerotransportada emulada com cerca de 420 mil retornos, colorida por altura (Z).</figcaption></figure><figure class="flab-shot"><img src="static/forest_lab/03_borda_urbana.jpg" loading="lazy" alt="Efeito de borda urbana no ano 300" width="1400" height="787"><figcaption><b>Efeito de borda urbana no ano 300.</b> Zona de contato com a expansão urbana a leste, onde a biomassa cai cerca de 48%.</figcaption></figure><figure class="flab-shot"><img src="static/forest_lab/04_zona_urbana.jpg" loading="lazy" alt="Zona urbana no ano 300" width="1400" height="787"><figcaption><b>Zona urbana no ano 300.</b> Malha viária, edifícios iluminados, casas e a fumaça da fábrica carregada pelo vento.</figcaption></figure></div>
+</div>
+
+<div class="rule">
+  <h4 class="h-serif">Modelo de crescimento</h4>
+  <details class="qa"><summary>Luz, recrutamento e os sete grupos funcionais</summary>
+    <div class="qa-body">
+      <p><b>Luz.</b> A área foliar de cada copa é distribuída sobre uma grade de 40 m e em camadas de 5 m de
+         altura, da base da copa até o topo. A luz abaixo de uma dada altura segue a lei de Lambert–Beer,
+         <code>L = exp(−k · IAF acima)</code>, com <code>k = 0,5</code> (Monsi &amp; Saeki, 1953/2005). No
+         chão da floresta madura a luz cai para cerca de 3%.</p>
+      <p style="margin-top:.7rem;"><b>Recrutamento.</b> Um sítio vazio é recolonizado conforme a luz que
+         chega ao solo (facilitação e tolerância; Connell &amp; Slatyer, 1977). Seguindo o padrão de
+         "composição florística inicial" (Finegan, 1996), árvores de estágios mais tardios podem se
+         estabelecer entre as pioneiras já nos primeiros anos, mas crescem devagar enquanto sombreadas.</p>
+      <div class="tbl-wrap" style="margin-top:.9rem;"><table class="tbl">
+        <thead><tr><th>#</th><th>Grupo (gêneros de exemplo)</th><th>Entra em</th><th>Luz no solo</th>
+          <th>Longevidade (anos)</th><th>Altura máx. (m)</th><th>Densidade da madeira (g/cm³)</th></tr></thead>
+        <tbody><tr><td style='text-align:center;font-weight:800;color:#15803D;'>1</td><td>Pioneiras (gramíneas, <i>Cecropia</i>, <i>Trema</i>)</td><td>ano 0 (banco de sementes)</td><td style='text-align:center;'>≥ 28%</td><td style='text-align:center;'>15–35</td><td style='text-align:center;'>20</td><td style='text-align:center;'>0,35</td></tr><tr><td style='text-align:center;font-weight:800;color:#15803D;'>2</td><td>Arbustos pioneiros (<i>Piper</i>, <i>Miconia</i>, <i>Vismia</i>)</td><td>ano 2</td><td style='text-align:center;'>≥ 15%</td><td style='text-align:center;'>15–40</td><td style='text-align:center;'>6</td><td style='text-align:center;'>0,40</td></tr><tr><td style='text-align:center;font-weight:800;color:#15803D;'>3</td><td>Secundárias iniciais (<i>Inga</i>, <i>Schizolobium</i>)</td><td>ano 3</td><td style='text-align:center;'>≥ 12%</td><td style='text-align:center;'>40–80</td><td style='text-align:center;'>26</td><td style='text-align:center;'>0,52</td></tr><tr><td style='text-align:center;font-weight:800;color:#15803D;'>4</td><td>Secundárias tardias (<i>Cedrela</i>, <i>Virola</i>)</td><td>ano 4</td><td style='text-align:center;'>qualquer</td><td style='text-align:center;'>100–220</td><td style='text-align:center;'>34</td><td style='text-align:center;'>0,65</td></tr><tr><td style='text-align:center;font-weight:800;color:#15803D;'>5</td><td>Clímax (<i>Carapa</i>, <i>Manilkara</i>, <i>Hymenaea</i>)</td><td>ano 5</td><td style='text-align:center;'>qualquer</td><td style='text-align:center;'>300–600</td><td style='text-align:center;'>43</td><td style='text-align:center;'>0,80</td></tr><tr><td style='text-align:center;font-weight:800;color:#15803D;'>6</td><td>Arvoretas e palmeiras tolerantes à sombra (<i>Euterpe</i>, <i>Geonoma</i>)</td><td>ano 10</td><td style='text-align:center;'>≤ 30%</td><td style='text-align:center;'>70–140</td><td style='text-align:center;'>10</td><td style='text-align:center;'>0,45</td></tr><tr><td style='text-align:center;font-weight:800;color:#15803D;'>7</td><td>Emergentes (<i>Bertholletia</i>, <i>Dinizia</i>, <i>Cariniana</i>)</td><td>ano 12</td><td style='text-align:center;'>qualquer</td><td style='text-align:center;'>500–900</td><td style='text-align:center;'>68</td><td style='text-align:center;'>0,72</td></tr></tbody>
+      </table></div>
+      <p style="margin-top:.8rem;font-size:.85rem;color:#64748B;">Agrupamento segundo Budowski (1965),
+         Finegan (1996) e Chazdon (2014). Cada sítio tem um grupo "de origem" — o pool de espécies da
+         paisagem — e é recolonizado sobretudo por ele, com chance menor para os demais (chuva de sementes).
+         Numa clareira dentro da floresta (solo iluminado, entorno sombreado), o sol direto quebra a dormência
+         do banco de sementes do solo e pioneiras podem germinar em qualquer sítio, produzindo o pulso de
+         colonizadoras (Finegan, 1996; Denslow, 1987).</p>
+    </div>
+  </details>
+  <details class="qa"><summary>Crescimento, persistência das pioneiras e sub-bosque sob as emergentes</summary>
+    <div class="qa-body">
+      <p><b>Crescimento.</b> A altura cresce rumo ao máximo do grupo (curva monomolecular). O crescimento
+         desacelera sob a sombra de árvores mais altas (supressão) e com solo pobre ou estresse de borda. O
+         raio da copa segue a altura alometricamente. Alturas nunca diminuem.</p>
+      <p style="margin-top:.7rem;"><b>Pioneiras e arbustos persistem a pleno sol.</b> Enquanto uma pioneira ou
+         arbusto pioneiro recebe ao menos 70% da luz plena no topo, ela não morre por senescência,
+         mortalidade de fundo ou estresse de borda. Ela desaparece apenas quando árvores mais altas começam a
+         sombreá-la. As únicas exceções são a destruição física: uma árvore grande caindo sobre ela, uma
+         clareira aberta pelo usuário, ou a conversão do terreno em cidade ou agricultura. Na execução padrão,
+         nenhuma das mortes de pioneiras ou arbustos ao longo de 1.000 anos acontece a pleno sol. O povoamento
+         pioneiro começa a declinar por volta dos 20–25 anos, quando as secundárias iniciais o ultrapassam em
+         altura, e quase desaparece aos 150 anos — sobrevivendo então só em clareiras e ao longo das bordas,
+         como descrito por Denslow (1987) e Laurance et al. (2002).</p>
+      <p style="margin-top:.7rem;"><b>Sub-bosque sob as emergentes.</b> A sombra profunda e úmida sob copas
+         emergentes grandes (&gt; 45 m) é o melhor hábitat para arvoretas e palmeiras tolerantes à sombra. Sob
+         essas copas elas se estabelecem três vezes mais rápido e morrem cerca de três vezes menos. Cerca de
+         90 sítios exclusivos de sub-bosque ficam próximos às emergentes. O resultado: o sub-bosque maduro
+         (anos 300–1.000) abriga cerca de 890 plantas em vez de cerca de 700 (+25%), com aproximadamente o
+         dobro de plantas sob cada emergente grande. Ele também é mais estável — cerca de 1,6% das plantas são
+         substituídas por ano, e a variação de um ano para o outro fica em torno de 0,5%.</p>
+    </div>
+  </details>
+  <details class="qa"><summary>Mortalidade, biomassa e calibração</summary>
+    <div class="qa-body">
+      <p><b>Mortalidade (demais casos).</b></p>
+      <ul class="lista" style="margin-top:.5rem;">
+        <li>Mortalidade de fundo de 0,4–4% ao ano, conforme o grupo e escalonada pelo controle de "taxa de
+            clareiras". Florestas tropicais renovam-se a cerca de 1–2% ao ano (Phillips &amp; Gentry, 1994).</li>
+        <li>Senescência ao fim da longevidade sorteada.</li>
+        <li>Sombreamento dos grupos exigentes de luz, que produz autodesbaste.</li>
+        <li>Fotoinibição de arvoretas tolerantes à sombra em clareiras grandes (Denslow, 1987).</li>
+        <li>Mortalidade adicional perto das bordas.</li>
+        <li>Esmagamento de vizinhas menores quando uma árvore grande cai.</li>
+      </ul>
+      <p style="margin-top:.8rem;"><b>Biomassa.</b> Cada sítio representa uma coorte de árvores reais do seu
+         grupo. A AGB usa a alometria pantropical de Chave et al. (2014), com o diâmetro estimado a partir do
+         raio da copa.</p>
+      <p style="margin-top:.7rem;"><b>Calibração.</b> A execução padrão alcança cerca de 85 Mg/ha aos 60 anos,
+         135 Mg/ha aos 100 anos e 210 Mg/ha aos 150 anos; cerca de 260–290 Mg/ha na floresta madura; altura de
+         dossel de cerca de 32 m aos 60 anos e emergentes de 68 m após cerca de 400 anos. Esses valores estão
+         dentro das faixas relatadas para florestas secundárias e maduras neotropicais (Chave et al., 2014;
+         Poorter et al., 2016). As intensidades de borda foram calibradas para que as zonas de contato percam
+         cerca de 48% (cidade), 25% (vinhedo) e 7% (rio) da sua biomassa.</p>
+      <p style="margin-top:.7rem;"><b>Reprodutibilidade.</b> Todos os sorteios aleatórios vêm de um <i>hash</i>
+         de semente fixa, e as intensidades de borda foram calibradas na média de 4 sementes independentes. A
+         história inteira de 1.000 anos é calculada de uma vez e recalculada quando o cenário muda — mover a
+         linha do tempo para frente e para trás sempre mostra a mesma floresta.</p>
+    </div>
+  </details>
+  <details class="qa"><summary>Requisitos, execução e importação de dados</summary>
+    <div class="qa-body">
+      <ul class="lista">
+        <li><b>Conexão de internet na primeira carga.</b> A página busca three.js r128 e Tailwind CSS 3.4.17
+            em CDNs públicos (cdnjs, jsDelivr e cdn.tailwindcss.com).</li>
+        <li><b>GPU dedicada ou integrada recente é recomendada.</b> O renderizador reduz a resolução
+            automaticamente em máquinas mais lentas.</li>
+        <li><b>Funciona em computadores e celulares.</b> Em telas pequenas o layout se adapta: um menu
+            compacto de ícones ☰ agrupa todos os controles, a barra de reprodução encolhe para a linha do
+            tempo durante a simulação e os avisos de efeito de borda ficam numa aba ⓘ arrastável. Orientação
+            paisagem é recomendada; em dispositivos de toque a qualidade gráfica é reduzida automaticamente
+            para manter a animação fluida.</li>
+        <li><b>Importação de dados.</b> Um arquivo JSON com posições e dimensões de árvores
+            (<code>dados_floresta_1000anos.json</code>, por exemplo exportado de um fluxo em Google Colab)
+            pode substituir o modelo de sucessão embutido.</li>
+        <li><b>Sem instalação, servidor ou conta.</b> Toda a simulação roda localmente no navegador e nenhum
+            dado é coletado ou enviado.</li>
+      </ul>
+    </div>
+  </details>
+</div>
+
+<div class="rule">
+  <h4 class="h-serif">Bibliotecas e referência conceitual</h4>
+  <div class="notes"><ul>
+    <li><b>three.js r128</b> — biblioteca de renderização 3D, licença MIT. <code>threejs.org</code></li>
+    <li><b>Tailwind CSS 3.4.17</b> — estilização da interface, licença MIT. <code>tailwindcss.com</code></li>
+    <li><b>HELIOS++</b> — Heidelberg LiDAR Operations Simulator, 3DGeo Research Group, Universidade de
+        Heidelberg. Serviu como referência conceitual para o modo Nuvem LiDAR; não é embutido nem
+        executado.</li>
+  </ul></div>
+  <details class="qa" style="margin-top:1rem;"><summary>Referências científicas (15)</summary>
+    <div class="qa-body"><ol class="lista" style="margin-left:1.3rem;"><li>Botkin, D. B., Janak, J. F., &amp; Wallis, J. R. (1972). Some ecological consequences of a computer model of forest growth. <i>Journal of Ecology, 60</i>(3), 849–872.</li><li>Budowski, G. (1965). Distribution of tropical American rain forest species in the light of successional processes. <i>Turrialba, 15</i>(1), 40–42.</li><li>Chave, J., Réjou-Méchain, M., Búrquez, A., <i>et al.</i> (2014). Improved allometric models to estimate the aboveground biomass of tropical trees. <i>Global Change Biology, 20</i>(10), 3177–3190.</li><li>Chazdon, R. L. (2014). <i>Second growth: The promise of tropical forest regeneration in an age of deforestation</i>. University of Chicago Press.</li><li>Connell, J. H., &amp; Slatyer, R. O. (1977). Mechanisms of succession in natural communities and their role in community stability and organization. <i>The American Naturalist, 111</i>(982), 1119–1144.</li><li>Denslow, J. S. (1987). Tropical rainforest gaps and tree species diversity. <i>Annual Review of Ecology and Systematics, 18</i>, 431–451.</li><li>Finegan, B. (1996). Pattern and process in neotropical secondary rain forests: The first 100 years of succession. <i>Trends in Ecology &amp; Evolution, 11</i>(3), 119–124.</li><li>Guariguata, M. R., &amp; Ostertag, R. (2001). Neotropical secondary forest succession: Changes in structural and functional characteristics. <i>Forest Ecology and Management, 148</i>(1–3), 185–206.</li><li>Köhler, P., &amp; Huth, A. (1998). The effects of tree species grouping in tropical rainforest modelling: Simulations with the individual-based model FORMIND. <i>Ecological Modelling, 109</i>(3), 301–321.</li><li>Laurance, W. F., Lovejoy, T. E., Vasconcelos, H. L., <i>et al.</i> (2002). Ecosystem decay of Amazonian forest fragments: A 22-year investigation. <i>Conservation Biology, 16</i>(3), 605–618.</li><li>Monsi, M., &amp; Saeki, T. (2005). On the factor light in plant communities and its importance for matter production (original de 1953). <i>Annals of Botany, 95</i>(3), 549–567.</li><li>Naiman, R. J., Décamps, H., &amp; McClain, M. E. (2005). <i>Riparia: Ecology, conservation, and management of streamside communities</i>. Elsevier Academic Press.</li><li>Phillips, O. L., &amp; Gentry, A. H. (1994). Increasing turnover through time in tropical forests. <i>Science, 263</i>(5149), 954–958.</li><li>Poorter, L., Bongers, F., Aide, T. M., <i>et al.</i> (2016). Biomass resilience of Neotropical secondary forests. <i>Nature, 530</i>(7589), 211–214.</li><li>Winiwarter, L., Esmorís Pena, A. M., Weiser, H., <i>et al.</i> (2022). Virtual laser scanning with HELIOS++: A novel take on ray tracing-based simulation of topographic full-waveform 3D laser scanning. <i>Remote Sensing of Environment, 269</i>, 112772.</li></ol></div>
+  </details>
+</div>
+
+<div class="cite-card">
+  <div class="cite-head"><span>Como citar o Forest Lab</span>
+    <span class="pill-green">DOI 10.5281/zenodo.23859145</span></div>
+  <p style="font-size:.84rem;color:#475569;margin:0 0 .6rem 0;">Versão 1.0.0 · Zenodo, 2026 · Metadados
+     legíveis por máquina em <code>CITATION.cff</code>.</p>
+  <div class="cite-box">SALES, J.; C.; A. Forest Lab: Crescimento florestal, sucessão ecológica e
+     interferência antrópica. Versão 1.0.0. Zenodo, 2026. DOI: 10.5281/zenodo.23859145. Disponível em:
+     https://orcid.org/0000-0001-8722-8398.</div>
+  <div class="cite-box" style="margin-top:.6rem;">Sales, J. C. A. (2026). <i>Forest Lab: Forest growth,
+     ecological succession and anthropogenic interference</i> (Version 1.0.0) [Computer software]. Zenodo.
+     https://doi.org/10.5281/zenodo.23859145</div>
+  <p style="font-size:.8rem;color:#64748B;margin:.7rem 0 0 0;">© 2026 Jomil Costa Abreu Sales. Todos os
+     direitos reservados. Visualização e uso acadêmico não comercial com citação são permitidos; ver
+     <code>LICENSE.txt</code>. Bibliotecas de terceiros permanecem sob as suas próprias licenças.</p>
+</div></div><div class="tabpane" data-tabs="ia" data-i="1">
 <h3 class="h-serif">🧠 Agentes Inteligentes &amp; RAG Especializado em Literatura Científica</h3>
 <p class="sub">Sistemas de Recuperação Aumentada por Geração (Retrieval-Augmented Generation) projetados para
    superar as limitações de LLMs genéricos no meio acadêmico e ambiental:</p>
@@ -734,7 +980,7 @@ a{color:#15803D;}
         <li>Embeddings vetoriais multilingues</li><li>API Google Gemini integrada</li>
         <li>Base de conhecimento pós-revisão por pares</li></ul>
   </div>
-</div></div><div class="tabpane" data-tabs="ia" data-i="1">
+</div></div><div class="tabpane" data-tabs="ia" data-i="2">
 <h3 class="h-serif">🔮 Modelagem Preditiva com Redes Neurais Artificiais (MOLUSCE / ANN-MLP)</h3>
 <p class="sub">Simulação espaço-temporal de mudanças de uso da terra e perdas funcionais de carbono através de
    inteligência artificial geoespacial:</p>
@@ -746,7 +992,7 @@ a{color:#15803D;}
       transição de classes para o horizonte de 2028 na APA de Itupararanga.</li>
   <li><b>Diferencial Competitivo:</b> permite que empresas de créditos de carbono e órgãos de fiscalização
       ambiental antecipem áreas de degradação florestal futura antes que o corte raso ocorra.</li>
-</ul></div></div><div class="tabpane" data-tabs="ia" data-i="2">
+</ul></div></div><div class="tabpane" data-tabs="ia" data-i="3">
 <h3 class="h-serif">⚖️ Sistemas de Apoio à Decisão com Lógica Difusa e OWA</h3>
 <p class="sub">Algoritmos de inteligência computacional para ponderação de políticas públicas fiscais e
    ambientais:</p>
@@ -759,7 +1005,7 @@ a{color:#15803D;}
       integridade.</li>
   <li><b>Reconhecimento Internacional:</b> metodologia apresentada no <i>21st Symposium on Systems Analysis
       in Forest Resources (SSAFR 2026, San Sebastián, Espanha)</i>.</li>
-</ul></div></div><div class="tabpane" data-tabs="ia" data-i="3">
+</ul></div></div><div class="tabpane" data-tabs="ia" data-i="4">
 <h3 class="h-serif">🛰️ Automação de Sensoriamento Remoto em Nuvem (GEE &amp; Python)</h3>
 <p class="sub">Pipelines automatizados de processamento massivo de imagens de satélite:</p>
 <div class="notes"><ul>
@@ -769,7 +1015,7 @@ a{color:#15803D;}
       (Sentinel-2, 10 m) e dados biofísicos globais (MODIS GPP MOD17A2H, 500 m).</li>
   <li><b>Reprodutibilidade Científica:</b> código documentado segundo as melhores práticas de Ciência Aberta
       e princípios FAIR.</li>
-</ul></div></div><div class="tabpane" data-tabs="ia" data-i="4">
+</ul></div></div><div class="tabpane" data-tabs="ia" data-i="5">
 <h3 class="h-serif">💡 Meus Produtos, Modelos &amp; Inovações em Construção</h3>
 <p class="sub">Ferramentas sob medida desenvolvidas pelo Dr. Jomil:</p>
 <div class="duo">
@@ -929,6 +1175,17 @@ a{color:#15803D;}
         p.classList.toggle('on', p.dataset.i === i);
       });
       despertar(document.querySelector('.tabpane[data-tabs="' + grupo + '"].on'));
+      return;
+    }
+
+    var tela = ev.target.closest('[data-fullscreen]');
+    if (tela){
+      var palco = document.getElementById(tela.dataset.fullscreen);
+      if (palco){
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (palco.requestFullscreen) palco.requestFullscreen();
+        else if (palco.webkitRequestFullscreen) palco.webkitRequestFullscreen();
+      }
       return;
     }
 
