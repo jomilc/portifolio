@@ -325,19 +325,10 @@ a{color:#15803D;}
 .flab-palco{background:#060D08;border:1.5px solid #14532D;border-radius:12px;padding:5px;
             box-shadow:0 6px 20px rgba(6,32,16,.18);
             margin-left:-2rem;margin-right:-2rem;}
-.flab-palco:fullscreen{padding:0;border:none;border-radius:0;margin:0;}
-.flab-palco:fullscreen .flab-frame{height:100vh;border-radius:0;}
-.flab-frame{display:block;width:100%;height:min(88vh,1040px);min-height:620px;border:none;
+.flab-video{display:block;width:100%;height:auto;aspect-ratio:16/9;border:none;
             border-radius:8px;background:#0B1220;}
-html.flab-amplo .sidebar{display:none;}
-html.flab-amplo .shell{max-width:none;}
-html.flab-amplo .main{padding-left:0;padding-right:0;}
-html.flab-amplo .flab-hero,html.flab-amplo .flab-acoes,html.flab-amplo .banner,
-html.flab-amplo .tabs,html.flab-amplo .caption,html.flab-amplo .rule,
-html.flab-amplo .cite-card{margin-left:1rem;margin-right:1rem;}
-html.flab-amplo .flab-palco{margin-left:0;margin-right:0;border-radius:0;
-                            border-left:none;border-right:none;}
-html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-radius:0;}
+.flab-acoes{margin-top:.9rem;}
+.btn-abrir{font-size:.95rem;padding:.62rem 1.25rem;}
 .flab-galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;
               margin-top:.5rem;}
 .flab-shot{margin:0;background:#FFF;border:1.5px solid #CBD5E1;border-radius:10px;overflow:hidden;
@@ -404,7 +395,6 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
   .hero-magazine{padding:1.2rem 1.2rem;}
   .fig-nav{grid-template-columns:1fr;}
   .sig-frame{height:600px;}
-  .flab-frame{height:min(80vh,640px);}
   .flab-palco{margin-left:-1rem;margin-right:-1rem;}
   .est-nota{text-align:left;max-width:none;}
   .est-valor{font-size:2.1rem;}
@@ -416,7 +406,6 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
   .tl-mark{display:none;}
   .tl-when{text-align:left;padding:0 0 .2rem .1rem;}
   .traj-hero h2{font-size:1.4rem;}
-  .flab-frame{height:min(78vh,560px);}
 }
 </style>
 <!-- medicao desligada: defina GOATCOUNTER em tools/build_site.py -->
@@ -838,10 +827,21 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
   </div>
 </div>
 
+<div class="flab-palco" id="flab-palco">
+  <video class="flab-video" controls muted loop playsinline preload="none" data-adormecido
+         poster="static/forest_lab/forest_lab_demo.jpg"
+         aria-label="Demonstração do Forest Lab em 20 segundos: 300 anos de sucessão florestal,
+                     o interior do dossel, o rio com mata ciliar, um pulso de chuva e as bordas
+                     de vinhedo e de expansão urbana">
+    <source src="static/forest_lab/forest_lab_demo.mp4" type="video/mp4">
+    <p>O seu navegador não reproduz este vídeo.
+       <a href="forest_lab/" target="_blank" rel="noopener">Abra o simulador diretamente</a>.</p>
+  </video>
+</div>
+
 <div class="flab-acoes">
-  <button class="btn btn-primary" data-fullscreen="flab-palco">⛶ Ver em tela cheia</button>
-  <button class="btn" data-amplo="1">⤢ Modo amplo</button>
-  <a class="btn" href="forest_lab/" target="_blank" rel="noopener">↗ Abrir só o simulador</a>
+  <a class="btn btn-primary btn-abrir" href="forest_lab/" target="_blank" rel="noopener"
+     data-medir="Forest Lab: abrir o simulador">▶ Abrir o simulador em tela inteira</a>
   <a class="btn" href="https://doi.org/10.5281/zenodo.23859145" target="_blank"
      rel="noopener">Registro no Zenodo</a>
   <a class="btn" href="https://github.com/jomilc/forest-growth-simulator" target="_blank"
@@ -849,17 +849,16 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
   <a class="btn" href="https://github.com/jomilc/forest-growth-simulator/blob/main/README.md"
      target="_blank" rel="noopener">Documentação técnica</a>
 </div>
-
-<div class="flab-palco" id="flab-palco">
-  <iframe class="flab-frame" src="forest_lab/" loading="lazy" allowfullscreen
-          title="Forest Lab — simulador interativo de sucessão florestal"></iframe>
-</div>
-<p class="caption">O simulador é interativo: arraste para girar a câmera, use a roda do mouse para aproximar
-   e a barra inferior para percorrer os 1.000 anos. Toda a simulação roda localmente, no seu computador —
-   nenhum dado é coletado ou enviado. A primeira carga busca three.js e Tailwind em CDN público e exige
-   WebGL; o cálculo completo da história de 1.000 anos leva cerca de 0,6–0,7 s. O botão <b>❓ Ajuda</b>
-   dentro do simulador traz o guia completo, e o tópico 7 lista todas as referências.
-   Para abrir apenas o simulador, sem o portfólio em volta, use
+<p class="caption">Demonstração de 20 segundos, em laço contínuo e sem som: a floresta cresce
+   por 300 anos enquanto a câmera dá uma volta completa, entra no sub-bosque, acompanha o rio sinuoso
+   com a sua mata ciliar, atravessa um pulso de chuva e termina nas duas bordas antrópicas — o vinhedo
+   a oeste e a expansão urbana a leste. <b>O vídeo é apenas uma amostra.</b> O simulador em si é
+   interativo e roda no navegador: arraste para girar a câmera, use a roda do mouse para aproximar e a
+   barra inferior para percorrer os 1.000 anos, com controle de pluviosidade, nuvem de pontos LiDAR e
+   abertura de clareiras. Toda a simulação roda localmente, no seu computador — nenhum dado é coletado
+   ou enviado. A primeira carga busca three.js e Tailwind em CDN público e exige WebGL; o cálculo
+   completo da história de 1.000 anos leva cerca de 0,6–0,7 s. O botão <b>❓ Ajuda</b> dentro do
+   simulador traz o guia completo, e o tópico 7 lista todas as referências. Endereço direto:
    <a href="forest_lab/" target="_blank" rel="noopener"><b>jomilc.github.io/portifolio/forest_lab/</b></a>.</p>
 
 <div class="rule">
@@ -1274,45 +1273,16 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
     todos('img[loading="lazy"],iframe[loading="lazy"]', raiz).forEach(function(el){
       if (el.offsetParent !== null) el.setAttribute('loading', 'eager');
     });
+    // O video do Forest Lab tem 7 MB: so e buscado quando a secao dele aparece,
+    // para nao pesar na visita de quem nunca a abre. Reproducao muda e em laco.
+    todos('video[data-adormecido]', raiz).forEach(function(v){
+      if (v.offsetParent === null) return;
+      v.removeAttribute('data-adormecido');
+      v.preload = 'auto';
+      var p = v.play();
+      if (p && p.catch) p.catch(function(){ /* barrado: ficam o poster e os controles */ });
+    });
   }
-
-  // O Forest Lab mantem dois canvas sobrepostos: o cenario de fundo (2D) e o
-  // render 3D. Ele so os redimensiona no evento 'resize' da propria janela, e o
-  // fundo le window.innerWidth/innerHeight enquanto o render le o tamanho do
-  // contedor. Dentro de um iframe a caixa muda sem que esse evento ocorra --
-  // ao exibir a secao, ao trocar de aba, ao sair da tela cheia -- e os dois
-  // canvas ficam de tamanhos diferentes, o que deixa uma borda vertical visivel
-  // e corta parte da cena. Avisamos o iframe sempre que a sua caixa mudar.
-  function sincronizarSimulador(){
-    var quadro = document.querySelector('.flab-frame');
-    if (!quadro) return;
-    try {
-      var janela = quadro.contentWindow;
-      if (janela && janela.document.readyState !== 'loading'){
-        janela.dispatchEvent(new janela.Event('resize'));
-      }
-    } catch (e) { /* outra origem: nada a fazer */ }
-  }
-
-  var sincPendente = null;
-  function agendarSincronia(){
-    clearTimeout(sincPendente);
-    sincPendente = setTimeout(sincronizarSimulador, 160);
-  }
-
-  (function observarSimulador(){
-    var quadro = document.querySelector('.flab-frame');
-    if (!quadro) return;
-    quadro.addEventListener('load', agendarSincronia);
-    // o ResizeObserver cobre o redimensionamento da janela; os cliques de secao,
-    // aba, modo amplo e tela cheia chamam agendarSincronia() diretamente, porque
-    // o observador so entrega avisos no fim de um quadro de renderizacao.
-    if (typeof ResizeObserver === 'function'){
-      new ResizeObserver(agendarSincronia).observe(quadro);
-    }
-    window.addEventListener('resize', agendarSincronia);
-    document.addEventListener('fullscreenchange', agendarSincronia);
-  })();
 
   // ------------------------------------------------------------- medicao
   // Camada de medicao anonima. Sem cookies: o GoatCounter nao usa nenhum, e o
@@ -1525,7 +1495,6 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
       history.pushState({sec: alvo}, '', '#' + alvo);
     }
     despertar(document.querySelector('.sec.on'));
-    if (alvo === 'ia') agendarSincronia();
     medir('/secao/' + alvo, 'Seção: ' + alvo);
     if (alvo === 'estatisticas') carregarPainel();
     window.scrollTo({top: 0, behavior: 'smooth'});
@@ -1563,7 +1532,6 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
         p.classList.toggle('on', p.dataset.i === i);
       });
       despertar(document.querySelector('.tabpane[data-tabs="' + grupo + '"].on'));
-      if (grupo === 'ia') agendarSincronia();
       medir('aba-' + grupo + '-' + i, 'Aba ' + grupo + ' n' + i, true);
       return;
     }
@@ -1604,30 +1572,6 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
         } else {
           manual();
         }
-      }
-      return;
-    }
-
-    var amplo = ev.target.closest('[data-amplo]');
-    if (amplo){
-      var ligado = document.documentElement.classList.toggle('flab-amplo');
-      agendarSincronia();
-      if (ligado) medir('simulador-modo-amplo', 'Forest Lab: modo amplo', true);
-      amplo.textContent = ligado ? '⤡ Sair do modo amplo' : '⤢ Modo amplo';
-      amplo.classList.toggle('btn-primary', ligado);
-      document.querySelector('.flab-acoes').scrollIntoView({block: 'start'});
-      return;
-    }
-
-    var tela = ev.target.closest('[data-fullscreen]');
-    if (tela){
-      medir('simulador-tela-cheia', 'Forest Lab: tela cheia', true);
-      agendarSincronia();
-      var palco = document.getElementById(tela.dataset.fullscreen);
-      if (palco){
-        if (document.fullscreenElement) document.exitFullscreen();
-        else if (palco.requestFullscreen) palco.requestFullscreen();
-        else if (palco.webkitRequestFullscreen) palco.webkitRequestFullscreen();
       }
       return;
     }
