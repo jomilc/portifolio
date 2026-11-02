@@ -17,6 +17,7 @@ import json
 import os
 import re
 import sys
+from urllib.parse import quote
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
@@ -25,6 +26,10 @@ from artigos_data import ARTIGOS  # noqa: E402
 
 SAIDA = os.path.join(RAIZ, "index.html")
 MANIFESTO = os.path.join(RAIZ, "static", "websig", "manifest.json")
+
+# Codigo do site no GoatCounter (o subdominio da conta). Vazio = medicao desligada:
+# a secao de estatisticas continua funcionando, mostrando so os dados locais.
+GOATCOUNTER = ""
 
 STATUS_CORES = {
     "destaque": ("#15803D", "#DCFCE7", "#BBF7D0"),
@@ -39,6 +44,7 @@ SECOES = [
     ("ia", "Criações com IA & Produtos"),
     ("consultoria", "Consultoria Ambiental & Tutoria em SIG"),
     ("trajetoria", "Trajetória Profissional & Docência"),
+    ("estatisticas", "Estatísticas de Acesso"),
 ]
 
 
@@ -193,6 +199,7 @@ def secao_inicio():
     <b>ESG, créditos de carbono, conservação da biodiversidade e segurança hídrica</b>.</p>
   <div class="tri-grid">{blocos}</div>
 </div>
+{bloco_compartilhar()}
 """
 
 
@@ -1485,6 +1492,54 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
 .flab-shot figcaption{font-size:.82rem;color:#475569;line-height:1.5;padding:.7rem .9rem;}
 .flab-shot figcaption b{color:#0F172A;}
 
+.share-card{background:#FFF;border:1.5px solid #CBD5E1;border-left:6px solid #0284C7;border-radius:10px;
+            padding:1.1rem 1.4rem;margin-top:1.4rem;box-shadow:0 2px 6px rgba(0,0,0,.03);}
+.share-head{font-family:Merriweather,serif;font-weight:800;color:#0F172A;font-size:1.02rem;
+            margin-bottom:.75rem;}
+.share-row{display:flex;flex-wrap:wrap;gap:8px;}
+.share-btn{display:inline-block;padding:.5rem 1rem;border-radius:8px;border:1.5px solid #CBD5E1;
+           background:#FFF;color:#334155;font-weight:700;font-size:.85rem;cursor:pointer;
+           font-family:inherit;text-decoration:none;transition:all .16s ease;}
+.share-btn:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(15,23,42,.10);}
+.share-btn.wa:hover{border-color:#25D366;color:#0F7A3D;}
+.share-btn.li:hover{border-color:#0A66C2;color:#0A66C2;}
+.share-btn.em:hover{border-color:#64748B;color:#0F172A;}
+.share-btn.cp:hover{border-color:#15803D;color:#15803D;}
+.share-btn.copiado{background:#15803D;border-color:#15803D;color:#FFF;}
+.share-nota{font-size:.79rem;color:#64748B;line-height:1.5;margin:.75rem 0 0 0;}
+
+.est-destaque{background:linear-gradient(135deg,#0C4A6E 0%,#075985 55%,#0369A1 100%);
+              border-radius:12px;padding:1.5rem 1.8rem;color:#E0F2FE;margin-bottom:.4rem;
+              display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;
+              box-shadow:0 4px 16px rgba(3,105,161,.18);}
+.est-numero{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.est-valor{font-family:Merriweather,serif;font-size:2.8rem;font-weight:900;color:#FFF;line-height:1;
+           letter-spacing:-.02em;}
+.est-rotulo{font-size:.95rem;color:#BAE6FD;font-weight:600;}
+.est-nota{font-size:.8rem;color:#BAE6FD;max-width:330px;line-height:1.5;text-align:right;}
+.est-destaque[data-estado="erro"]{background:linear-gradient(135deg,#334155 0%,#1E293B 100%);}
+.est-destaque[data-estado="desligado"]{background:linear-gradient(135deg,#44403C 0%,#292524 100%);}
+
+.est-tabela .num{text-align:right;font-weight:800;color:#0369A1;font-variant-numeric:tabular-nums;}
+.est-tabela .barra{padding-right:1rem;}
+.est-tabela .barra span{display:block;height:9px;border-radius:5px;background:#0284C7;
+                        transition:width .5s ease;}
+
+.est-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px;
+           margin-top:.6rem;}
+.est-item{display:flex;gap:11px;background:#FFF;border:1px solid #E2E8F0;border-radius:9px;
+          padding:.9rem 1.05rem;box-shadow:0 2px 4px rgba(0,0,0,.03);}
+.est-ico{font-size:1.25rem;line-height:1.2;flex-shrink:0;}
+.est-item b{display:block;font-size:.92rem;color:#0F172A;font-family:Merriweather,serif;
+            margin-bottom:.25rem;}
+.est-item p{font-size:.83rem;color:#475569;line-height:1.5;margin:0;}
+
+.est-painel{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;
+            background:#F8FAFC;border:1.5px solid #CBD5E1;border-radius:10px;padding:1.1rem 1.4rem;
+            margin-top:1.4rem;}
+.est-painel b{font-family:Merriweather,serif;color:#0F172A;font-size:1rem;}
+.est-painel p{font-size:.84rem;color:#475569;line-height:1.5;margin:.25rem 0 0 0;max-width:620px;}
+
 @media (max-width:980px){
   .shell{flex-direction:column;}
   .sidebar{width:100%;flex:none;position:static;max-height:none;min-height:0;
@@ -1497,6 +1552,8 @@ html.flab-amplo .flab-frame{height:calc(100vh - 74px);min-height:420px;border-ra
   .sig-frame{height:600px;}
   .flab-frame{height:min(80vh,640px);}
   .flab-palco{margin-left:-1rem;margin-right:-1rem;}
+  .est-nota{text-align:left;max-width:none;}
+  .est-valor{font-size:2.1rem;}
   .flab-hero h3{font-size:1.2rem;}
 }
 @media (max-width:640px){
@@ -1523,6 +1580,202 @@ JS = """
     });
   }
 
+  // ------------------------------------------------------------- medicao
+  // Camada de medicao anonima. Sem cookies: o GoatCounter nao usa nenhum, e o
+  // que fica no localStorage serve so para o painel "Esta visita" deste aparelho.
+  var CODIGO = document.documentElement.dataset.gc || '';
+  var fila = [];
+
+  function medir(caminho, titulo, evento){
+    if (!CODIGO) return;
+    var gc = window.goatcounter;
+    if (!gc || typeof gc.count !== 'function'){
+      if (fila.length < 30) fila.push([caminho, titulo, evento]);
+      return;
+    }
+    try {
+      gc.count({path: caminho, title: titulo || caminho, event: !!evento});
+    } catch (e) { /* bloqueador de anuncios: a pagina segue funcionando */ }
+  }
+
+  function escoarFila(){
+    var pendentes = fila.splice(0, fila.length);
+    pendentes.forEach(function(a){ medir(a[0], a[1], a[2]); });
+  }
+  window.addEventListener('load', escoarFila);
+  setTimeout(escoarFila, 2500);
+
+  var CANAIS = [
+    [/(^|\\.)linkedin\\.|lnkd\\.in/, 'linkedin', 'LinkedIn'],
+    [/(^|\\.)google\\.[a-z.]+$/, 'google', 'Google'],
+    [/scholar\\.google/, 'google-academico', 'Google Acadêmico'],
+    [/(^|\\.)bing\\./, 'bing', 'Bing'],
+    [/duckduckgo/, 'duckduckgo', 'DuckDuckGo'],
+    [/whatsapp|wa\\.me/, 'whatsapp', 'WhatsApp'],
+    [/t\\.me|telegram/, 'telegram', 'Telegram'],
+    [/(^|\\.)facebook\\.|fb\\.me/, 'facebook', 'Facebook'],
+    [/instagram/, 'instagram', 'Instagram'],
+    [/t\\.co$|twitter\\.com|x\\.com$/, 'twitter', 'X / Twitter'],
+    [/researchgate/, 'researchgate', 'ResearchGate'],
+    [/orcid\\.org/, 'orcid', 'ORCID'],
+    [/zenodo\\.org|doi\\.org/, 'zenodo', 'Zenodo / DOI'],
+    [/lattes\\.cnpq/, 'lattes', 'Lattes'],
+    [/github\\.|github\\.io/, 'github', 'GitHub'],
+    [/mail\\.google|outlook\\.|mail\\.yahoo|webmail/, 'email', 'E-mail']
+  ];
+
+  function origem(){
+    var utm = null;
+    try { utm = new URLSearchParams(location.search).get('utm_source'); } catch (e) { utm = null; }
+    if (utm) return {chave: utm.toLowerCase().slice(0, 40), nome: utm + ' (campanha etiquetada)'};
+    var ref = document.referrer;
+    if (!ref) return {chave: 'direto', nome: 'Acesso direto, favorito ou aplicativo de mensagens'};
+    var host;
+    try { host = new URL(ref).hostname.replace(/^www\\./, ''); } catch (e) {
+      return {chave: 'desconhecido', nome: 'Origem não identificada'};
+    }
+    if (host === location.hostname) return {chave: 'interno', nome: 'Navegação dentro do próprio site'};
+    for (var i = 0; i < CANAIS.length; i++){
+      if (CANAIS[i][0].test(host)) return {chave: CANAIS[i][1], nome: CANAIS[i][2]};
+    }
+    return {chave: host.slice(0, 40), nome: host};
+  }
+
+  function guardar(chave, valor){
+    try { localStorage.setItem(chave, valor); } catch (e) { /* modo privado */ }
+  }
+  function ler(chave, padrao){
+    try { var v = localStorage.getItem(chave); return v === null ? padrao : v; }
+    catch (e) { return padrao; }
+  }
+
+  var ORIGEM = origem();
+  var visitas = parseInt(ler('jcas_visitas', '0'), 10) + 1;
+  var primeira = ler('jcas_primeira', '') || new Date().toISOString();
+  guardar('jcas_visitas', String(visitas));
+  guardar('jcas_primeira', primeira);
+
+  // uma vez por sessao, registra por onde a pessoa chegou
+  try {
+    if (!sessionStorage.getItem('jcas_origem')){
+      sessionStorage.setItem('jcas_origem', ORIGEM.chave);
+      medir('origem-' + ORIGEM.chave, 'Origem: ' + ORIGEM.nome, true);
+    }
+  } catch (e) { /* sessionStorage indisponivel */ }
+
+  function rotuloLink(el){
+    var r = (el.dataset.medir || el.getAttribute('aria-label') || el.textContent || '').trim();
+    if (!r){ try { r = new URL(el.href).hostname; } catch (e) { r = 'link'; } }
+    return r.replace(/\\s+/g, ' ').slice(0, 60);
+  }
+
+  // ------------------------------------------------- painel de estatisticas
+  function formatar(n){
+    return String(n).replace(/\\B(?=(\\d{3})+(?!\\d))/g, '.');
+  }
+
+  function textoVisita(){
+    var nav = navigator;
+    var toque = (nav.maxTouchPoints || 0) > 1;
+    var larg = window.screen ? window.screen.width : 0;
+    var tipo = larg && larg < 768 ? 'Celular' : (toque && larg < 1200 ? 'Tablet' : 'Computador');
+    var d = new Date(primeira);
+    var dataPrimeira = isNaN(d.getTime()) ? '—' :
+      d.toLocaleDateString('pt-BR', {day: '2-digit', month: 'short', year: 'numeric'});
+    return [
+      ['Como você chegou', ORIGEM.nome],
+      ['Endereço de origem', document.referrer ? document.referrer.slice(0, 70) : 'Nenhum informado'],
+      ['Acessos deste aparelho', formatar(visitas) + (visitas === 1 ? ' (primeiro)' : '')],
+      ['Primeiro acesso', dataPrimeira],
+      ['Tipo de aparelho', tipo],
+      ['Tela', (window.screen ? window.screen.width + ' × ' + window.screen.height : '—') + ' px'],
+      ['Idioma do navegador', nav.language || '—'],
+      ['Fuso horário', (Intl.DateTimeFormat().resolvedOptions().timeZone || '—')],
+      ['Medição ativa', CODIGO ? 'Sim, anônima e sem cookies' : 'Ainda não configurada'],
+      ['Bloqueador de anúncios', (window.goatcounter && window.goatcounter.count) || !CODIGO ?
+        'Não detectado' : 'Provavelmente ativo (acesso não contado)']
+    ];
+  }
+
+  function montarVisita(){
+    var caixa = document.querySelector('[data-visita]');
+    if (!caixa || caixa.dataset.pronto) return;
+    caixa.dataset.pronto = '1';
+    caixa.innerHTML = textoVisita().map(function(par){
+      return '<div class="metadata-item"><div class="metadata-label">' + par[0] +
+             '</div><div class="metadata-val">' + String(par[1]) + '</div></div>';
+    }).join('');
+  }
+
+  function numero(txt){
+    var n = parseInt(String(txt).replace(/[^0-9]/g, ''), 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function contador(caminho){
+    var u = 'https://' + CODIGO + '.goatcounter.com/counter/' + encodeURIComponent(caminho) + '.json';
+    return fetch(u, {mode: 'cors'}).then(function(r){
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    }).then(function(j){ return numero(j.count != null ? j.count : j.count_unique); });
+  }
+
+  var carregouPainel = false;
+  function carregarPainel(){
+    if (carregouPainel) return;
+    carregouPainel = true;
+    montarVisita();
+
+    var destaque = document.querySelector('.est-destaque');
+    var alvoTotal = document.querySelector('[data-total]');
+    var txt = document.querySelector('[data-estado-txt]');
+    var link = document.querySelector('[data-painel-url]');
+    var caixaLink = document.querySelector('[data-painel-link]');
+
+    if (!CODIGO){
+      if (destaque) destaque.dataset.estado = 'desligado';
+      if (alvoTotal) alvoTotal.textContent = '—';
+      if (txt) txt.textContent = 'O contador ainda não foi ativado. Assim que a conta de medição ' +
+        'estiver criada, os números aparecem aqui automaticamente.';
+      if (caixaLink) caixaLink.style.display = 'none';
+      return;
+    }
+
+    if (link) link.href = 'https://' + CODIGO + '.goatcounter.com';
+
+    contador('TOTAL').then(function(total){
+      if (destaque) destaque.dataset.estado = 'ok';
+      if (alvoTotal) alvoTotal.textContent = formatar(total);
+      if (txt) txt.textContent = 'Visitantes únicos estimados. Bloqueadores de anúncio barram cerca ' +
+        'de um terço dos acessos, então o número real é um pouco maior.';
+    }).catch(function(){
+      if (destaque) destaque.dataset.estado = 'erro';
+      if (alvoTotal) alvoTotal.textContent = '—';
+      if (txt) txt.textContent = 'Não foi possível ler o contador público agora. Verifique se a opção ' +
+        '"Allow adding visitor counts on your website" está ligada nas configurações do serviço.';
+    });
+
+    var linhas = todos('[data-contador-secao]');
+    Promise.all(linhas.map(function(tr){
+      return contador('/secao/' + tr.dataset.contadorSecao).catch(function(){ return null; });
+    })).then(function(vals){
+      var validos = vals.filter(function(v){ return v !== null; });
+      if (!validos.length){
+        linhas.forEach(function(tr){ tr.querySelector('[data-valor]').textContent = '—'; });
+        return;
+      }
+      var maior = Math.max.apply(null, validos.concat([1]));
+      linhas.forEach(function(tr, i){
+        var v = vals[i];
+        tr.querySelector('[data-valor]').textContent = v === null ? '—' : formatar(v);
+        if (v !== null){
+          var pct = v > 0 ? Math.max(3, Math.round((v / maior) * 100)) : 0;
+          tr.querySelector('[data-barra]').style.width = pct + '%';
+        }
+      });
+    });
+  }
+
   function irPara(alvo, empurrar){
     var achou = false;
     todos('.sec').forEach(function(s){
@@ -1538,6 +1791,8 @@ JS = """
       history.pushState({sec: alvo}, '', '#' + alvo);
     }
     despertar(document.querySelector('.sec.on'));
+    medir('/secao/' + alvo, 'Seção: ' + alvo);
+    if (alvo === 'estatisticas') carregarPainel();
     window.scrollTo({top: 0, behavior: 'smooth'});
     return true;
   }
@@ -1573,20 +1828,63 @@ JS = """
         p.classList.toggle('on', p.dataset.i === i);
       });
       despertar(document.querySelector('.tabpane[data-tabs="' + grupo + '"].on'));
+      medir('aba-' + grupo + '-' + i, 'Aba ' + grupo + ' n' + i, true);
+      return;
+    }
+
+    var share = ev.target.closest('[data-share]');
+    if (share){
+      medir('compartilhar-' + share.dataset.share, 'Compartilhar: ' + share.dataset.share, true);
+      if (share.dataset.copiar){
+        ev.preventDefault();
+        var endereco = share.dataset.copiar;
+        var confirmar = function(){
+          var antes = share.textContent;
+          share.textContent = 'Link copiado!';
+          share.classList.add('copiado');
+          setTimeout(function(){
+            share.textContent = antes;
+            share.classList.remove('copiado');
+          }, 2200);
+        };
+        var manual = function(){
+          var cx = document.createElement('textarea');
+          cx.value = endereco;
+          cx.setAttribute('readonly', '');
+          cx.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+          document.body.appendChild(cx);
+          cx.select();
+          var deu = false;
+          try { deu = document.execCommand('copy'); } catch (e) { deu = false; }
+          document.body.removeChild(cx);
+          if (deu) confirmar();
+          else {
+            share.textContent = 'Copie: ' + endereco;
+            share.classList.add('copiado');
+          }
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(endereco).then(confirmar, manual);
+        } else {
+          manual();
+        }
+      }
       return;
     }
 
     var amplo = ev.target.closest('[data-amplo]');
     if (amplo){
       var ligado = document.documentElement.classList.toggle('flab-amplo');
+      if (ligado) medir('simulador-modo-amplo', 'Forest Lab: modo amplo', true);
       amplo.textContent = ligado ? '⤡ Sair do modo amplo' : '⤢ Modo amplo';
       amplo.classList.toggle('btn-primary', ligado);
       document.querySelector('.flab-acoes').scrollIntoView({block: 'start'});
       return;
     }
 
-
+    var tela = ev.target.closest('[data-fullscreen]');
     if (tela){
+      medir('simulador-tela-cheia', 'Forest Lab: tela cheia', true);
       var palco = document.getElementById(tela.dataset.fullscreen);
       if (palco){
         if (document.fullscreenElement) document.exitFullscreen();
@@ -1606,10 +1904,23 @@ JS = """
     }
 
     var cartao = ev.target.closest('.art-card');
-    if (cartao){ selecionarArtigo(cartao.dataset.art); return; }
+    if (cartao){
+      medir('artigo-' + cartao.dataset.art, 'Artigo aberto: ' + cartao.dataset.art, true);
+      selecionarArtigo(cartao.dataset.art);
+      return;
+    }
 
     var quadro = ev.target.closest('.film');
     if (quadro){ mostrarFigura(quadro.dataset.film, parseInt(quadro.dataset.i, 10)); return; }
+
+    var externo = ev.target.closest('a[href^="http"], a[href^="mailto:"]');
+    if (externo && !externo.dataset.share){
+      var destino = externo.getAttribute('href') || '';
+      if (destino.indexOf(location.origin) !== 0){
+        var nome = rotuloLink(externo);
+        medir('link-' + nome, 'Link: ' + nome, true);
+      }
+    }
 
     var passo = ev.target.closest('[data-figstep]');
     if (passo){
@@ -1653,9 +1964,6 @@ LINKS = [
      '7.5v9A4.5 4.5 0 0 0 7.5 21h12zM7.5 5h6A2.5 2.5 0 0 1 16 7.5v3h-8.5A2.5 2.5 0 0 1 5 8V7.5A2.5 2.5 0 0 1 '
      '7.5 5zm-2.5 11.5v-4A2.5 2.5 0 0 1 7.5 10H16v.5A2.5 2.5 0 0 1 13.5 13H10v2h3.5A2.5 2.5 0 0 1 16 '
      '17.5v.5H7.5A2.5 2.5 0 0 1 5 16.5z"/>'),
-    ("https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7268395", "Preprint SSRN (ID 7268395)", "#D97706",
-     '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2z'
-     'm-3-5V3.5L18.5 9H13z"/>'),
     ("mailto:jomil.sales@usp.br", "Contato: jomil.sales@usp.br", "#15803D",
      '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 '
      '5-8-5V6l8 5 8-5v2z"/>'),
@@ -1670,6 +1978,156 @@ def bloco_links():
                       f'<svg width="18" height="18" viewBox="0 0 24 24" fill="{cor}">{svg}</svg>'
                       f'{esc(rotulo)}</a>')
     return "".join(partes)
+
+
+def script_medicao():
+    """Carrega o count.js do GoatCounter, quando ha um codigo configurado."""
+    if not GOATCOUNTER:
+        return "<!-- medicao desligada: defina GOATCOUNTER em tools/build_site.py -->"
+    return ('<script data-goatcounter="https://{0}.goatcounter.com/count" '
+            'async src="//gc.zgo.at/count.js"></script>').format(GOATCOUNTER)
+
+
+def bloco_compartilhar(titulo="Compartilhe este portfólio", nota=True):
+    """Botoes de compartilhamento. Cada clique vira um evento medido."""
+    alvo = "https://jomilc.github.io/portifolio/"
+    texto = ("Portfólio científico do Dr. Jomil Costa Abreu Sales — sensoriamento remoto, "
+             "WebSIG da APA de Itupararanga e o simulador 3D Forest Lab")
+    wa = f"https://wa.me/?text={quote(texto + ' ' + alvo)}"
+    li = f"https://www.linkedin.com/sharing/share-offsite/?url={quote(alvo)}"
+    email = (f"mailto:?subject={quote('Portfolio cientifico - Dr. Jomil Costa Abreu Sales')}"
+             f"&body={quote(texto + ':' + chr(10) + chr(10) + alvo)}")
+    aviso = ("" if not nota else
+             '<p class="share-nota">Os botões contam quantas pessoas clicaram em compartilhar. '
+             'O compartilhamento em si acontece fora do site e não pode ser medido por ninguém — '
+             'o que se mede é de onde chegam as visitas.</p>')
+    return f"""
+<div class="share-card">
+  <div class="share-head"><span>\U0001f517 {titulo}</span></div>
+  <div class="share-row">
+    <a class="share-btn wa" href="{wa}" target="_blank" rel="noopener"
+       data-share="whatsapp">WhatsApp</a>
+    <a class="share-btn li" href="{li}" target="_blank" rel="noopener"
+       data-share="linkedin">LinkedIn</a>
+    <a class="share-btn em" href="{email}" data-share="email">E-mail</a>
+    <button class="share-btn cp" data-share="copiar" data-copiar="{alvo}">Copiar link</button>
+  </div>
+  {aviso}
+</div>"""
+
+
+def secao_estatisticas():
+    """Painel publico de metricas de acesso."""
+    linhas_secoes = "".join(
+        f'<tr data-contador-secao="{slug}"><td>{esc(rotulo)}</td>'
+        f'<td class="num" data-valor>—</td>'
+        f'<td class="barra"><span data-barra style="width:0%"></span></td></tr>'
+        for slug, rotulo in SECOES if slug != "estatisticas")
+
+    medidos = [
+        ("\U0001f465", "Visitantes e visualizações",
+         "Quantas pessoas entraram, quantas páginas viram e em que dia. O número de visitantes "
+         "é uma estimativa por dispositivo: a mesma pessoa no celular e no computador conta duas vezes."),
+        ("\U0001f5c2️", "Seções mais visitadas",
+         "Cada seção aberta — artigos, WebSIG, IA, consultoria, trajetória — "
+         "é registrada separadamente, o que mostra o que realmente interessa a quem chega."),
+        ("\U0001f5b1️", "Cliques em cada link",
+         "LinkedIn, ORCID, Lattes, Google Acadêmico, ResearchGate, o DOI do Forest Lab, o "
+         "código no GitHub, o simulador em tela cheia e cada artigo aberto."),
+        ("\U0001f9ed", "De onde vieram as visitas",
+         "LinkedIn, Google, ResearchGate, Zenodo, WhatsApp, acesso direto. É a medida mais próxima "
+         "de “quem compartilhou”, porque mostra o compartilhamento que trouxe gente."),
+        ("\U0001f4e4", "Cliques em compartilhar",
+         "Quantas pessoas clicaram nos botões de WhatsApp, LinkedIn, e-mail e copiar link. "
+         "É intenção de compartilhar, não compartilhamento confirmado."),
+        ("\U0001f30d", "País, navegador, sistema e tela",
+         "Em que país a pessoa está, que navegador e sistema usa, e se o acesso foi por celular "
+         "ou computador — útil para saber se o portfólio precisa funcionar bem no telefone."),
+        ("\U0001f3f7️", "Campanhas etiquetadas",
+         "Se você divulgar o link com uma etiqueta diferente por canal "
+         "(<code>?utm_source=linkedin</code>, por exemplo), cada canal aparece separado, mesmo quando "
+         "o navegador não informa a origem."),
+    ]
+    cartoes_medidos = "".join(
+        f'<div class="est-item"><span class="est-ico">{i}</span>'
+        f'<div><b>{t}</b><p>{d}</p></div></div>' for i, t, d in medidos)
+
+    nao_medidos = [
+        ("Quantas pessoas compartilharam de fato",
+         "Copiar o endereço e colar no WhatsApp, num e-mail ou num grupo acontece inteiramente fora "
+         "do site. Não existe evento para registrar nem API que informe — nenhuma ferramenta "
+         "do mercado consegue isso."),
+        ("Quem são as pessoas",
+         "Não há nome, e-mail, login nem perfil. A medição é anônima e "
+         "agregada, sem cookies, o que também dispensa aviso de consentimento."),
+        ("O total exato de visitas",
+         "Bloqueadores de anúncio barram cerca de um terço dos acessos. Todo número aqui "
+         "é um piso — o real é sempre um pouco maior."),
+        ("Visitas vindas de WhatsApp, Telegram e e-mail",
+         "Esses aplicativos não informam a origem ao navegador, então aparecem como "
+         "“acesso direto”. Links etiquetados com <code>utm_source</code> resolvem isso."),
+    ]
+    lista_nao = "".join(f"<li><b>{t}</b> — {d}</li>" for t, d in nao_medidos)
+
+    return f"""
+<div class="banner" style="border-left-color:#0284C7;">
+  <h2>\U0001f4ca Estatísticas de Acesso</h2>
+  <p>Medição anônima e sem cookies de quem visita este portfólio: quantas pessoas
+     entram, que seções abrem, em que links clicam e por qual caminho chegaram. Esta página
+     mostra também, com honestidade, o que <b>não</b> é possível medir.</p>
+</div>
+
+<div class="est-destaque" data-estado="carregando">
+  <div class="est-numero">
+    <span class="est-valor" data-total>—</span>
+    <span class="est-rotulo">visitantes desde a publicação</span>
+  </div>
+  <div class="est-nota" data-estado-txt>Consultando o contador…</div>
+</div>
+
+<div class="rule">
+  <h3 class="h-serif">Seções mais visitadas</h3>
+  <p class="sub">Contagem de visitantes por seção. Os números são atualizados pelo
+     serviço de medição a cada 30 minutos.</p>
+  <div class="tbl-wrap"><table class="tbl est-tabela">
+    <thead><tr><th>Seção</th><th style="width:110px;">Visitantes</th>
+      <th style="width:38%;">Proporção</th></tr></thead>
+    <tbody>{linhas_secoes}</tbody>
+  </table></div>
+</div>
+
+<div class="rule">
+  <h3 class="h-serif">Esta visita</h3>
+  <p class="sub">O que o próprio navegador informa sobre o seu acesso, calculado aqui no seu
+     aparelho. Nada disto sai do seu dispositivo nesta tabela — é mostrado para deixar
+     transparente exatamente o que a medição enxerga.</p>
+  <div class="metadata-grid" data-visita></div>
+</div>
+
+<div class="rule">
+  <h3 class="h-serif">O que é medido</h3>
+  <div class="est-grade">{cartoes_medidos}</div>
+</div>
+
+<div class="rule">
+  <h3 class="h-serif">O que não é medido — e por quê</h3>
+  <div class="notes" style="border-left:4px solid #B45309;">
+    <ul>{lista_nao}</ul>
+  </div>
+</div>
+
+{bloco_compartilhar()}
+
+<div class="est-painel" data-painel-link>
+  <div>
+    <b>Painel completo</b>
+    <p>O detalhamento dia a dia — origens, cliques, países, navegadores e campanhas — fica
+       no painel do serviço de medição, visível apenas para você, com envio de um
+       resumo diário por e-mail.</p>
+  </div>
+  <a class="btn btn-primary" data-painel-url href="#" target="_blank" rel="noopener">Abrir painel</a>
+</div>
+"""
 
 
 def construir():
@@ -1688,10 +2146,11 @@ def construir():
         f'<section class="sec" data-sec="ia">{secao_ia()}</section>',
         f'<section class="sec" data-sec="consultoria">{secao_consultoria()}</section>',
         f'<section class="sec" data-sec="trajetoria">{secao_trajetoria(traj)}</section>',
+        f'<section class="sec" data-sec="estatisticas">{secao_estatisticas()}</section>',
     ])
 
     pagina = f"""<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-gc="{GOATCOUNTER}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1703,6 +2162,7 @@ def construir():
 <meta property="og:type" content="website" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127807;</text></svg>" />
 <style>{CSS}</style>
+{script_medicao()}
 </head>
 <body>
 <div class="shell">
