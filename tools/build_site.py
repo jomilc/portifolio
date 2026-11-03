@@ -13,6 +13,7 @@ o que faz sentido num site estatico: o navegador cacheia cada arquivo.
 """
 
 import html
+import io
 import json
 import os
 import re
@@ -38,6 +39,10 @@ GOATCOUNTER = "jomilc"
 # juntas, conferindo o par em goatcounter.com/help/countjs-versions.
 COUNTJS_ARQUIVO = "//gc.zgo.at/count.v5.js"
 COUNTJS_HASH = "sha384-atnOLvQb9t+jTSipvd75X2yginT4PjVbqDdlJAmxMm+wYElFmeR6EmLP5bYeoRVQ"
+
+# Comentario que marca o trecho injetado na pagina do simulador, para o gerador
+# reconhecer e trocar o proprio trabalho em vez de empilhar um script por vez.
+MARCA_MEDICAO = "<!-- medicao do portfolio: injetada por tools/build_site.py -->"
 
 STATUS_CORES = {
     "destaque": ("#15803D", "#DCFCE7", "#BBF7D0"),
@@ -1925,6 +1930,15 @@ JS = """
     var quadro = ev.target.closest('.film');
     if (quadro){ mostrarFigura(quadro.dataset.film, parseInt(quadro.dataset.i, 10)); return; }
 
+    // Link interno que pede medicao explicita, como o botao do simulador. O
+    // bloco seguinte so enxerga http e mailto, entao sem isto um caminho
+    // relativo como forest_lab/ nunca seria contado.
+    var marcado = ev.target.closest('a[data-medir]');
+    if (marcado && !/^(https?:|mailto:)/i.test(marcado.getAttribute('href') || '')){
+      var rotuloI = rotuloLink(marcado);
+      medir('link-' + rotuloI, 'Link: ' + rotuloI, true);
+    }
+
     var externo = ev.target.closest('a[href^="http"], a[href^="mailto:"]');
     if (externo && !externo.dataset.share){
       var destino = externo.getAttribute('href') || '';
@@ -1999,6 +2013,52 @@ def script_medicao():
     return ('<script data-goatcounter="https://{0}.goatcounter.com/count" '
             'async src="{1}" crossorigin="anonymous" '
             'integrity="{2}"></script>').format(GOATCOUNTER, COUNTJS_ARQUIVO, COUNTJS_HASH)
+
+
+def medir_simulador():
+    """Poe o mesmo script de medicao dentro da pagina do simulador.
+
+    O Forest Lab e um arquivo solto, copiado do repositorio dele, e nao passa
+    pelo gerador. Sem isto quem chega pelo DOI do Zenodo, pelo LinkedIn ou por
+    um link direto nao apareceria em lugar nenhum: so contariam as pessoas que
+    passam pelo portfolio. Fazer a injecao aqui, e nao a mao, mantem a versao do
+    count.js e a impressao digital num lugar so.
+
+    A pagina registra o proprio endereco, /portifolio/forest_lab/, sem caminho
+    inventado. Se o arquivo for substituido por uma copia nova do simulador,
+    basta rodar o gerador de novo.
+    """
+    caminho = os.path.join(RAIZ, "forest_lab", "index.html")
+    if not os.path.exists(caminho):
+        print("aviso: forest_lab/index.html nao existe; medicao do simulador nao aplicada")
+        return
+    with io.open(caminho, encoding="utf-8") as f:
+        pagina = f.read()
+
+    antes = pagina
+    # Tira a versao anterior antes de injetar, para o arquivo nao acumular um
+    # script a cada execucao do gerador.
+    marca = pagina.find(MARCA_MEDICAO)
+    if marca != -1:
+        fim = pagina.find("</script>", marca)
+        if fim != -1:
+            inicio_linha = pagina.rfind("\n", 0, marca) + 1
+            depois = fim + len("</script>")
+            if pagina[depois:depois + 1] == "\n":
+                depois += 1
+            pagina = pagina[:inicio_linha] + pagina[depois:]
+
+    if "</head>" not in pagina:
+        print("aviso: </head> nao encontrado em forest_lab/index.html; medicao nao aplicada")
+        return
+    bloco = "  " + MARCA_MEDICAO + "\n  " + script_medicao() + "\n"
+    pagina = pagina.replace("</head>", bloco + "</head>", 1)
+    if pagina == antes:
+        return
+    with io.open(caminho, "w", encoding="utf-8", newline="\n") as f:
+        f.write(pagina)
+    print("forest_lab/index.html: medicao %s" %
+          ("aplicada" if GOATCOUNTER else "removida (GOATCOUNTER vazio)"))
 
 
 def bloco_compartilhar(titulo="Compartilhe este portfólio", nota=True):
@@ -2233,6 +2293,8 @@ def construir():
     # .nojekyll impede o GitHub Pages de processar o site com Jekyll
     with open(os.path.join(RAIZ, ".nojekyll"), "w", encoding="utf-8") as f:
         f.write("")
+
+    medir_simulador()
 
     figuras = sum(len(a["figuras"]) for a in ARTIGOS)
     print(f"index.html escrito: {os.path.getsize(SAIDA) / 1024:.0f} KB")

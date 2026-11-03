@@ -1616,6 +1616,15 @@ a{color:#15803D;}
     var quadro = ev.target.closest('.film');
     if (quadro){ mostrarFigura(quadro.dataset.film, parseInt(quadro.dataset.i, 10)); return; }
 
+    // Link interno que pede medicao explicita, como o botao do simulador. O
+    // bloco seguinte so enxerga http e mailto, entao sem isto um caminho
+    // relativo como forest_lab/ nunca seria contado.
+    var marcado = ev.target.closest('a[data-medir]');
+    if (marcado && !/^(https?:|mailto:)/i.test(marcado.getAttribute('href') || '')){
+      var rotuloI = rotuloLink(marcado);
+      medir('link-' + rotuloI, 'Link: ' + rotuloI, true);
+    }
+
     var externo = ev.target.closest('a[href^="http"], a[href^="mailto:"]');
     if (externo && !externo.dataset.share){
       var destino = externo.getAttribute('href') || '';
