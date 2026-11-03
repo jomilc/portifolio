@@ -1214,18 +1214,25 @@ a{color:#15803D;}
 .links a:hover{color:#15803D;}
 .links svg{margin-right:8px;flex-shrink:0;}
 
-.hero-faixa{border-radius:12px;overflow:hidden;margin-bottom:.8rem;
-            box-shadow:0 4px 15px rgba(0,0,0,.08);background:#1E293B;}
-.hero-faixa img{display:block;width:100%;height:auto;aspect-ratio:2000/496;object-fit:cover;}
-.hero-magazine{background:linear-gradient(135deg,#0E2B17 0%,#14532D 55%,#166534 100%);
-               border-radius:12px;padding:1.6rem 2.2rem;margin-bottom:1.4rem;
-               box-shadow:0 4px 15px rgba(0,0,0,.08);border-left:6px solid #16A34A;}
-.hero-row{display:flex;align-items:center;flex-wrap:wrap;gap:20px;}
+.hero-capa{position:relative;border-radius:12px;overflow:hidden;margin-bottom:1.4rem;
+           box-shadow:0 4px 15px rgba(0,0,0,.08);background:#0E2B17;}
+.hero-capa-fundo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+                 object-position:center;}
+/* Veu escuro sobre a capa. A metade esquerda da imagem e clara, e e justamente
+   onde ficam a foto e o nome: sem este degrade o texto branco cai muito abaixo
+   do contraste de leitura. O lado direito fica mais aberto, deixando as curvas
+   de nivel visiveis. */
+.hero-capa::after{content:"";position:absolute;inset:0;
+                  background:linear-gradient(100deg,rgba(6,23,13,.90) 0%,rgba(6,23,13,.78) 42%,
+                             rgba(6,23,13,.46) 72%,rgba(6,23,13,.26) 100%);}
+.hero-capa-conteudo{position:relative;z-index:1;display:flex;align-items:center;flex-wrap:wrap;
+                    gap:20px;padding:1.9rem 2.2rem;min-height:188px;}
 .hero-photo{width:104px;height:104px;border-radius:50%;object-fit:cover;border:3.5px solid #FFF;
             box-shadow:0 4px 14px rgba(0,0,0,.25);flex-shrink:0;}
 .hero-title{font-family:Merriweather,serif;font-size:2.35rem;font-weight:900;color:#FFF;
-            letter-spacing:-.02em;line-height:1.15;}
-.hero-subtitle{font-size:1.15rem;color:#F1F5F9;font-weight:500;line-height:1.4;margin-top:.35rem;}
+            letter-spacing:-.02em;line-height:1.15;text-shadow:0 2px 12px rgba(0,0,0,.55);}
+.hero-subtitle{font-size:1.15rem;color:#F1F5F9;font-weight:500;line-height:1.4;margin-top:.35rem;
+               text-shadow:0 1px 8px rgba(0,0,0,.6);}
 
 .sec{display:none;}
 .sec.on{display:block;}
@@ -1558,7 +1565,7 @@ a{color:#15803D;}
   .main{padding:1rem 1rem 2rem 1rem;width:100%;}
   .split{grid-template-columns:1fr;}
   .hero-title{font-size:1.6rem;}
-  .hero-magazine{padding:1.2rem 1.2rem;}
+  .hero-capa-conteudo{padding:1.3rem 1.2rem;min-height:0;}
   .fig-nav{grid-template-columns:1fr;}
   .sig-frame{height:600px;}
   .flab-palco{margin-left:-1rem;margin-right:-1rem;}
@@ -1572,7 +1579,9 @@ a{color:#15803D;}
   .tl-mark{display:none;}
   .tl-when{text-align:left;padding:0 0 .2rem .1rem;}
   .traj-hero h2{font-size:1.4rem;}
-  .hero-faixa img{aspect-ratio:auto;height:118px;}
+  .hero-capa-fundo{object-position:70% center;}
+  .hero-capa::after{background:linear-gradient(180deg,rgba(6,23,13,.46) 0%,
+                               rgba(6,23,13,.74) 46%,rgba(6,23,13,.88) 100%);}
 }
 """
 
@@ -1734,9 +1743,15 @@ JS = """
   function contador(caminho){
     var u = 'https://' + CODIGO + '.goatcounter.com/counter/' + encodeURIComponent(caminho) + '.json';
     return fetch(u, {mode: 'cors'}).then(function(r){
+      // Caminho que ainda nao recebeu visita nenhuma volta como 404. Isso nao e
+      // falha de leitura, e ausencia de registro: vale zero. Antes virava traco,
+      // e o painel parecia quebrado enquanto so estava vazio.
+      if (r.status === 404) return null;
       if (!r.ok) throw new Error(r.status);
       return r.json();
-    }).then(function(j){ return numero(j.count != null ? j.count : j.count_unique); });
+    }).then(function(j){
+      return j === null ? 0 : numero(j.count != null ? j.count : j.count_unique);
+    });
   }
 
   var carregouPainel = false;
@@ -2188,12 +2203,11 @@ def construir():
   </aside>
 
   <main class="main">
-    <div class="hero-faixa">
-      <img src="static/capa.jpg" alt="Relevo representado por curvas de nível sobre uma nuvem de pontos,
-           em tons de verde e azul — leitura topográfica por sensoriamento remoto" />
-    </div>
-    <div class="hero-magazine">
-      <div class="hero-row">
+    <div class="hero-capa">
+      <img class="hero-capa-fundo" src="static/capa.jpg"
+           alt="Relevo representado por curvas de nível sobre uma nuvem de pontos,
+                em tons de verde e azul — leitura topográfica por sensoriamento remoto" />
+      <div class="hero-capa-conteudo">
         <img class="hero-photo" src="{esc(foto)}" alt="" />
         <div>
           <div class="hero-title">Dr. Jomil Costa Abreu Sales</div>
